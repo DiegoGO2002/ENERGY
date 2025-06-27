@@ -1,532 +1,207 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RANDOMPHOTO</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #000;
-      color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    button {
-      font-size: 1.1rem;
-      padding: 12px 20px;
-      margin: 10px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      background-color: crimson;
-      color: white;
-      transition: background-color 0.3s ease;
-    }
-    button:hover {
-      background-color: darkred;
-    }
-
-    .hidden { display: none; }
-
-    #auth-choice {
-      margin-top: 100px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    form {
-      margin-top: 40px;
-      display: flex;
-      flex-direction: column;
-      max-width: 400px;
-      width: 100%;
-    }
-
-    input {
-      font-size: 1rem;
-      padding: 10px;
-      margin: 8px 0;
-      border-radius: 5px;
-      border: none;
-    }
-
-    #login-error, #register-error {
-      color: red;
-      font-weight: bold;
-      min-height: 1.2em;
-      margin-top: 10px;
-      text-align: center;
-    }
-
-    #camera-section {
-      width: 100%;
-      max-width: 400px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-
-    video {
-      width: 100%;
-      height: 640px;
-      object-fit: cover;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(255,255,255,0.3);
-    }
-
-    video.mirror {
-      transform: scaleX(-1);
-    }
-
-    #take-photo-btn {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background-color: white;
-      border: none;
-      margin: 15px 0;
-      cursor: pointer;
-    }
-
-    #logout-btn, #switch-camera-btn {
-      position: absolute;
-      top: 10px;
-      background-color: crimson;
-      color: white;
-      padding: 8px 12px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      z-index: 10;
-    }
-
-    #logout-btn {
-      right: 10px;
-    }
-
-    #switch-camera-btn {
-      left: 10px;
-    }
-
-    #gallery {
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      width: 100%;
-      max-width: 400px;
-      padding: 10px;
-      margin-bottom: 20px;
-    }
-
-    #gallery img {
-      width: 70px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 10px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    #username-display {
-      margin-bottom: 10px;
-      font-size: 1.2rem;
-      font-weight: bold;
-      text-align: center;
-    }
-
-    /* Modal */
-    #modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.9);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 999;
-      flex-direction: column;
-    }
-
-    #modal img {
-      max-width: 90vw;
-      max-height: 90vh;
-      border-radius: 10px;
-    }
-
-    .nav-btn {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 2rem;
-      background: transparent;
-      border: none;
-      color: white;
-      cursor: pointer;
-      padding: 10px;
-    }
-
-    #prev-btn { left: 10px; }
-    #next-btn { right: 10px; }
-
-    #close-modal {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: crimson;
-      border: none;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RANDOMPHOTO</title>
+<style>
+  body { font-family: Arial; background: #000; color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin:0; padding:20px;}
+  button { padding: 12px 20px; margin: 10px; background: crimson; border:none; border-radius: 8px; color: white; cursor: pointer; font-size: 1.1rem; }
+  button:hover { background: darkred; }
+  .hidden { display: none; }
+  form { display: flex; flex-direction: column; max-width: 350px; width: 100%; margin-top: 30px; }
+  input { margin: 8px 0; padding: 10px; border-radius: 5px; border:none; font-size: 1rem; }
+  #camera-section { margin-top: 30px; text-align: center; }
+  video { width: 320px; height: 240px; border-radius: 12px; background: black; }
+  #logout-btn { margin-top: 15px; }
+  #error-msg { color: #f44336; font-weight: bold; margin-top: 10px; min-height: 1.3em; }
+</style>
 </head>
 <body>
 
-  <!-- SDK Appwrite -->
-  <script src="https://cdn.jsdelivr.net/npm/appwrite@8.0.0/build/appwrite.min.js"></script>
+<div id="auth-choice">
+  <button id="btn-login">Iniciar Sesión</button>
+  <button id="btn-register">Registrarse</button>
+</div>
 
-  <!-- Elección entre login y registro -->
-  <div id="auth-choice">
-    <button id="show-login-btn">Iniciar Sesión</button>
-    <button id="show-register-btn">Registrarse</button>
-  </div>
+<form id="form-login" class="hidden">
+  <h2>Iniciar Sesión</h2>
+  <input type="email" id="login-email" placeholder="Correo electrónico" required />
+  <input type="password" id="login-password" placeholder="Contraseña" required />
+  <button type="submit">Entrar</button>
+  <div id="login-error" role="alert"></div>
+  <button type="button" id="cancel-login">Cancelar</button>
+</form>
 
-  <!-- Formulario Registro -->
-  <form id="register-form" class="hidden">
-    <h2>Registrarse</h2>
-    <input type="email" id="register-email" placeholder="Correo electrónico" required />
-    <input type="password" id="register-password" placeholder="Contraseña" required />
-    <input type="text" id="register-username" placeholder="Nombre de usuario" required />
-    <button type="submit">Registrarse</button>
-    <div id="register-error"></div>
-    <button type="button" id="cancel-register">Cancelar</button>
-  </form>
+<form id="form-register" class="hidden">
+  <h2>Registrarse</h2>
+  <input type="email" id="register-email" placeholder="Correo electrónico" required />
+  <input type="password" id="register-password" placeholder="Contraseña" required />
+  <input type="text" id="register-username" placeholder="Nombre de usuario" required />
+  <button type="submit">Registrarse</button>
+  <div id="register-error" role="alert"></div>
+  <button type="button" id="cancel-register">Cancelar</button>
+</form>
 
-  <!-- Formulario Login -->
-  <form id="login-form" class="hidden">
-    <h2>Iniciar Sesión</h2>
-    <input type="email" id="login-email" placeholder="Correo electrónico" required />
-    <input type="password" id="login-password" placeholder="Contraseña" required />
-    <button type="submit">Entrar</button>
-    <div id="login-error"></div>
-    <button type="button" id="cancel-login">Cancelar</button>
-  </form>
+<div id="camera-section" class="hidden">
+  <h2>Bienvenido, <span id="user-name"></span></h2>
+  <video id="video" autoplay playsinline></video>
+  <br />
+  <button id="logout-btn">Salir</button> <!-- Aquí cambié el texto -->
+</div>
 
-  <!-- Cámara y fotos -->
-  <div id="camera-section" class="hidden">
-    <button id="logout-btn">Cerrar sesión</button>
-    <button id="switch-camera-btn" title="Cambiar cámara">📷</button>
-    <div id="username-display"></div>
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas" class="hidden"></canvas>
-    <button id="take-photo-btn" title="Tomar foto"></button>
-    <div id="gallery"></div>
-  </div>
+<script src="https://cdn.jsdelivr.net/npm/appwrite@8.0.0/build/appwrite.min.js"></script>
+<script>
+  // Configura tu proyecto Appwrite aquí
+  const sdk = new window.Appwrite();
+  sdk
+    .setEndpoint('https://nyc.cloud.appwrite.io/v1') // Cambia si tienes otro endpoint
+    .setProject('685ef5dd0010e2c90647'); // Cambia al ID de tu proyecto
 
-  <!-- Modal para fotos -->
-  <div id="modal">
-    <button id="close-modal">Cerrar</button>
-    <button class="nav-btn" id="prev-btn">&#10094;</button>
-    <img id="modal-img" src="" />
-    <button class="nav-btn" id="next-btn">&#10095;</button>
-  </div>
+  const account = new window.Appwrite.Account(sdk);
 
-  <script>
-    // Configuración Appwrite
-    const sdk = new window.Appwrite();
-    sdk
-      .setEndpoint('https://nyc.cloud.appwrite.io/v1') // tu endpoint
-      .setProject('685ef5dd0010e2c90647'); // tu project ID
+  // Referencias a elementos
+  const authChoice = document.getElementById('auth-choice');
+  const btnLogin = document.getElementById('btn-login');
+  const btnRegister = document.getElementById('btn-register');
 
-    const account = new window.Appwrite.Account(sdk);
-    const storage = new window.Appwrite.Storage(sdk);
+  const formLogin = document.getElementById('form-login');
+  const loginEmail = document.getElementById('login-email');
+  const loginPassword = document.getElementById('login-password');
+  const loginError = document.getElementById('login-error');
+  const cancelLogin = document.getElementById('cancel-login');
 
-    // Elementos DOM para elección auth
-    const authChoice = document.getElementById('auth-choice');
-    const showLoginBtn = document.getElementById('show-login-btn');
-    const showRegisterBtn = document.getElementById('show-register-btn');
+  const formRegister = document.getElementById('form-register');
+  const registerEmail = document.getElementById('register-email');
+  const registerPassword = document.getElementById('register-password');
+  const registerUsername = document.getElementById('register-username');
+  const registerError = document.getElementById('register-error');
+  const cancelRegister = document.getElementById('cancel-register');
 
-    // Formularios
-    const registerForm = document.getElementById('register-form');
-    const loginForm = document.getElementById('login-form');
+  const cameraSection = document.getElementById('camera-section');
+  const video = document.getElementById('video');
+  const logoutBtn = document.getElementById('logout-btn');
+  const userNameSpan = document.getElementById('user-name');
 
-    // Inputs registro
-    const registerEmail = document.getElementById('register-email');
-    const registerPassword = document.getElementById('register-password');
-    const registerUsername = document.getElementById('register-username');
+  let stream = null;
 
-    // Inputs login
-    const loginEmail = document.getElementById('login-email');
-    const loginPassword = document.getElementById('login-password');
+  // Mostrar formularios
+  btnLogin.onclick = () => {
+    authChoice.classList.add('hidden');
+    formRegister.classList.add('hidden');
+    formLogin.classList.remove('hidden');
+    loginError.textContent = '';
+    formLogin.reset();
+  };
 
-    // Errores
-    const registerError = document.getElementById('register-error');
-    const loginError = document.getElementById('login-error');
+  btnRegister.onclick = () => {
+    authChoice.classList.add('hidden');
+    formLogin.classList.add('hidden');
+    formRegister.classList.remove('hidden');
+    registerError.textContent = '';
+    formRegister.reset();
+  };
 
-    // Cámara y UI
-    const cameraSection = document.getElementById('camera-section');
-    const logoutBtn = document.getElementById('logout-btn');
-    const switchCameraBtn = document.getElementById('switch-camera-btn');
-    const usernameDisplay = document.getElementById('username-display');
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const takePhotoBtn = document.getElementById('take-photo-btn');
-    const gallery = document.getElementById('gallery');
-    const modal = document.getElementById('modal');
-    const modalImg = document.getElementById('modal-img');
-    const closeModal = document.getElementById('close-modal');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
+  cancelLogin.onclick = () => {
+    formLogin.classList.add('hidden');
+    authChoice.classList.remove('hidden');
+  };
 
-    let stream = null;
-    let photos = [];
-    let currentIndex = 0;
-    let useFrontCamera = true;
-    let currentUserName = '';
+  cancelRegister.onclick = () => {
+    formRegister.classList.add('hidden');
+    authChoice.classList.remove('hidden');
+  };
 
-    // Mostrar formulario login
-    showLoginBtn.onclick = () => {
-      authChoice.classList.add('hidden');
-      loginForm.classList.remove('hidden');
-      loginError.textContent = '';
-      loginForm.reset();
-    };
+  // Iniciar cámara
+  async function startCamera() {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      video.srcObject = stream;
+    } catch (err) {
+      alert('No se pudo acceder a la cámara: ' + err.message);
+    }
+  }
 
-    // Mostrar formulario registro
-    showRegisterBtn.onclick = () => {
-      authChoice.classList.add('hidden');
-      registerForm.classList.remove('hidden');
-      registerError.textContent = '';
-      registerForm.reset();
-    };
+  // Detener cámara
+  function stopCamera() {
+    if(stream){
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+  }
 
-    // Cancelar registro
-    document.getElementById('cancel-register').onclick = () => {
-      registerForm.classList.add('hidden');
-      authChoice.classList.remove('hidden');
-    };
+  // Mostrar cámara y ocultar demás
+  function showCamera(userName) {
+    formLogin.classList.add('hidden');
+    formRegister.classList.add('hidden');
+    authChoice.classList.add('hidden');
+    cameraSection.classList.remove('hidden');
+    userNameSpan.textContent = userName;
+    startCamera();
+  }
 
-    // Cancelar login
-    document.getElementById('cancel-login').onclick = () => {
-      loginForm.classList.add('hidden');
-      authChoice.classList.remove('hidden');
-    };
+  // Ocultar cámara y mostrar elección auth
+  function showAuthChoice() {
+    cameraSection.classList.add('hidden');
+    authChoice.classList.remove('hidden');
+    stopCamera();
+  }
 
-    // Función para iniciar cámara
-    async function startCamera() {
-      stopCamera();
-      const constraints = {
-        video: { facingMode: useFrontCamera ? 'user' : 'environment' }
-      };
-      try {
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-        video.srcObject = stream;
-        if (useFrontCamera) {
-          video.classList.add('mirror');
-        } else {
-          video.classList.remove('mirror');
-        }
-      } catch (err) {
-        alert('No se pudo acceder a la cámara: ' + err.message);
+  // Registrar usuario
+  formRegister.onsubmit = async (e) => {
+    e.preventDefault();
+    registerError.textContent = '';
+    try {
+      // Crear cuenta
+      await account.create(
+        window.crypto.randomUUID(),
+        registerEmail.value,
+        registerPassword.value,
+        registerUsername.value
+      );
+      // Iniciar sesión luego del registro
+      await account.createSession(registerEmail.value, registerPassword.value);
+      showCamera(registerUsername.value);
+    } catch (error) {
+      if(error.message.includes('already exists')){
+        registerError.textContent = 'El correo ya está registrado.';
+      } else {
+        registerError.textContent = 'Error: ' + error.message;
       }
     }
+  };
 
-    function stopCamera() {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        stream = null;
-      }
+  // Login
+  formLogin.onsubmit = async (e) => {
+    e.preventDefault();
+    loginError.textContent = '';
+    try {
+      await account.createSession(loginEmail.value, loginPassword.value);
+      const user = await account.get();
+      showCamera(user.name || 'Usuario');
+    } catch (error) {
+      loginError.textContent = 'Credenciales incorrectas.';
     }
+  };
 
-    // Renderizar galería
-    function renderGallery() {
-      gallery.innerHTML = '';
-      photos.forEach((src, index) => {
-        const img = document.createElement('img');
-        img.src = src;
-        img.onclick = () => openModal(index);
-        gallery.appendChild(img);
-      });
+  // Logout
+  logoutBtn.onclick = async () => {
+    try {
+      await account.deleteSession('current');
+    } catch {}
+    showAuthChoice();
+  };
+
+  // Comprobar sesión al cargar la página
+  window.onload = async () => {
+    try {
+      const user = await account.get();
+      showCamera(user.name || 'Usuario');
+    } catch {
+      showAuthChoice();
     }
-
-    // Modal fotos
-    function openModal(index) {
-      currentIndex = index;
-      modalImg.src = photos[currentIndex];
-      modal.style.display = 'flex';
-    }
-    function closeModalFunc() {
-      modal.style.display = 'none';
-    }
-    function showNext() {
-      currentIndex = (currentIndex + 1) % photos.length;
-      modalImg.src = photos[currentIndex];
-    }
-    function showPrev() {
-      currentIndex = (currentIndex - 1 + photos.length) % photos.length;
-      modalImg.src = photos[currentIndex];
-    }
-
-    // Subir foto a Appwrite Storage
-    async function uploadPhoto(dataUrl) {
-      try {
-        function dataURLtoBlob(dataurl) {
-          const arr = dataurl.split(',');
-          const mime = arr[0].match(/:(.*?);/)[1];
-          const bstr = atob(arr[1]);
-          let n = bstr.length;
-          const u8arr = new Uint8Array(n);
-          while(n--) {
-              u8arr[n] = bstr.charCodeAt(n);
-          }
-          return new Blob([u8arr], {type:mime});
-        }
-
-        const blob = dataURLtoBlob(dataUrl);
-        const file = new File([blob], `photo_${Date.now()}.png`, {type: blob.type});
-        // Cambia 'your_bucket_id' por el ID real de tu bucket en Appwrite
-        const response = await storage.createFile('your_bucket_id', file);
-        console.log('Foto subida:', response);
-        alert('Foto subida con éxito');
-      } catch (e) {
-        console.error('Error al subir foto:', e);
-        alert('Error al subir foto: ' + e.message);
-      }
-    }
-
-    // Registro
-    registerForm.onsubmit = async e => {
-      e.preventDefault();
-      registerError.textContent = '';
-      const email = registerEmail.value.trim();
-      const password = registerPassword.value.trim();
-      const username = registerUsername.value.trim();
-
-      if (!email || !password || !username) {
-        registerError.textContent = 'Todos los campos son obligatorios.';
-        return;
-      }
-
-      try {
-        await account.create(
-          window.crypto.randomUUID(),
-          email,
-          password,
-          username
-        );
-        // Luego iniciar sesión automáticamente para mostrar cámara
-        await account.createSession(email, password);
-        currentUserName = username;
-        showCameraSection();
-      } catch (error) {
-        if (error.code === 409) {
-          registerError.textContent = 'Este correo ya está registrado.';
-        } else {
-          registerError.textContent = 'Error al registrar: ' + error.message;
-        }
-      }
-    };
-
-    // Login
-    loginForm.onsubmit = async e => {
-      e.preventDefault();
-      loginError.textContent = '';
-      const email = loginEmail.value.trim();
-      const password = loginPassword.value.trim();
-
-      if (!email || !password) {
-        loginError.textContent = 'Email y contraseña son obligatorios.';
-        return;
-      }
-
-      try {
-        await account.createSession(email, password);
-        const user = await account.get();
-        currentUserName = user.name || 'Usuario';
-        showCameraSection();
-      } catch (err) {
-        loginError.textContent = 'Error de inicio de sesión: ' + err.message;
-      }
-    };
-
-    // Mostrar cámara y ocultar formularios y botones de auth
-    function showCameraSection() {
-      authChoice.classList.add('hidden');
-      loginForm.classList.add('hidden');
-      registerForm.classList.add('hidden');
-      cameraSection.classList.remove('hidden');
-      logoutBtn.style.display = 'block';  // mostrar botón cerrar sesión
-      usernameDisplay.textContent = `Usuario: ${currentUserName}`;
-      startCamera();
-    }
-
-    // Logout
-    logoutBtn.onclick = async () => {
-      try {
-        await account.deleteSession('current');
-      } catch {}
-      stopCamera();
-      photos = [];
-      renderGallery();
-      cameraSection.classList.add('hidden');
-      authChoice.classList.remove('hidden');
-      loginForm.classList.add('hidden');
-      registerForm.classList.add('hidden');
-      logoutBtn.style.display = 'none'; // ocultar botón cerrar sesión
-    };
-
-    // Cambiar cámara
-    switchCameraBtn.onclick = () => {
-      useFrontCamera = !useFrontCamera;
-      startCamera();
-    };
-
-    // Tomar foto y subir
-    takePhotoBtn.onclick = async () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/png');
-
-      photos.unshift(dataUrl);
-      if (photos.length > 5) photos.pop();
-
-      renderGallery();
-
-      // Subir foto a Appwrite
-      await uploadPhoto(dataUrl);
-    };
-
-    // Modal fotos
-    closeModal.onclick = closeModalFunc;
-    nextBtn.onclick = showNext;
-    prevBtn.onclick = showPrev;
-
-    // Al cargar la página checar si hay sesión activa
-    window.onload = async () => {
-      try {
-        const user = await account.get();
-        currentUserName = user.name || 'Usuario';
-        showCameraSection();
-      } catch {
-        // no sesión
-        logoutBtn.style.display = 'none';
-        cameraSection.classList.add('hidden');
-        authChoice.classList.remove('hidden');
-      }
-    };
-  </script>
+  };
+</script>
 </body>
 </html>
+
