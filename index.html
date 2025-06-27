@@ -58,7 +58,7 @@
       border: none;
     }
 
-    #login-error {
+    #login-error, #register-error {
       color: red;
       font-weight: bold;
       min-height: 1.2em;
@@ -209,7 +209,7 @@
     <input type="password" id="register-password" placeholder="Contraseña" required />
     <input type="text" id="register-username" placeholder="Nombre de usuario" required />
     <button type="submit">Registrarse</button>
-    <div id="login-error"></div>
+    <div id="register-error"></div>
     <button type="button" id="cancel-register">Cancelar</button>
   </form>
 
@@ -270,12 +270,11 @@
     const loginEmail = document.getElementById('login-email');
     const loginPassword = document.getElementById('login-password');
 
-    // Otros elementos
-    const loginErrorRegister = registerForm.querySelector('#login-error');
-    const loginErrorLogin = loginForm.querySelector('#login-error');
+    // Errores
+    const registerError = document.getElementById('register-error');
+    const loginError = document.getElementById('login-error');
 
     // Cámara y UI
-    const loginError = document.getElementById('login-error');
     const cameraSection = document.getElementById('camera-section');
     const logoutBtn = document.getElementById('logout-btn');
     const switchCameraBtn = document.getElementById('switch-camera-btn');
@@ -300,7 +299,7 @@
     showLoginBtn.onclick = () => {
       authChoice.classList.add('hidden');
       loginForm.classList.remove('hidden');
-      loginErrorLogin.textContent = '';
+      loginError.textContent = '';
       loginForm.reset();
     };
 
@@ -308,7 +307,7 @@
     showRegisterBtn.onclick = () => {
       authChoice.classList.add('hidden');
       registerForm.classList.remove('hidden');
-      loginErrorRegister.textContent = '';
+      registerError.textContent = '';
       registerForm.reset();
     };
 
@@ -409,28 +408,32 @@
     // Registro
     registerForm.onsubmit = async e => {
       e.preventDefault();
-      loginErrorRegister.textContent = '';
+      registerError.textContent = '';
       const email = registerEmail.value.trim();
       const password = registerPassword.value.trim();
       const username = registerUsername.value.trim();
 
       if (!email || !password || !username) {
-        loginErrorRegister.textContent = 'Todos los campos son obligatorios.';
+        registerError.textContent = 'Todos los campos son obligatorios.';
         return;
       }
 
       try {
-        await account.create(email, password, username);
-        alert('Usuario creado exitosamente, ahora inicia sesión.');
-        registerForm.classList.add('hidden');
-        loginForm.classList.remove('hidden');
-        loginEmail.value = email;
-        loginPassword.value = password;
+        await account.create(
+          window.crypto.randomUUID(),
+          email,
+          password,
+          username
+        );
+        // Luego iniciar sesión automáticamente para mostrar cámara
+        await account.createSession(email, password);
+        currentUserName = username;
+        showCameraSection();
       } catch (error) {
         if (error.code === 409) {
-          loginErrorRegister.textContent = 'Este correo ya está registrado.';
+          registerError.textContent = 'Este correo ya está registrado.';
         } else {
-          loginErrorRegister.textContent = 'Error al registrar: ' + error.message;
+          registerError.textContent = 'Error al registrar: ' + error.message;
         }
       }
     };
@@ -438,12 +441,12 @@
     // Login
     loginForm.onsubmit = async e => {
       e.preventDefault();
-      loginErrorLogin.textContent = '';
+      loginError.textContent = '';
       const email = loginEmail.value.trim();
       const password = loginPassword.value.trim();
 
       if (!email || !password) {
-        loginErrorLogin.textContent = 'Email y contraseña son obligatorios.';
+        loginError.textContent = 'Email y contraseña son obligatorios.';
         return;
       }
 
@@ -451,15 +454,22 @@
         await account.createSession(email, password);
         const user = await account.get();
         currentUserName = user.name || 'Usuario';
-        authChoice.classList.add('hidden');
-        loginForm.classList.add('hidden');
-        cameraSection.classList.remove('hidden');
-        usernameDisplay.textContent = `Usuario: ${currentUserName}`;
-        startCamera();
+        showCameraSection();
       } catch (err) {
-        loginErrorLogin.textContent = 'Error de inicio de sesión: ' + err.message;
+        loginError.textContent = 'Error de inicio de sesión: ' + err.message;
       }
     };
+
+    // Mostrar cámara y ocultar formularios y botones de auth
+    function showCameraSection() {
+      authChoice.classList.add('hidden');
+      loginForm.classList.add('hidden');
+      registerForm.classList.add('hidden');
+      cameraSection.classList.remove('hidden');
+      logoutBtn.style.display = 'block';  // mostrar botón cerrar sesión
+      usernameDisplay.textContent = `Usuario: ${currentUserName}`;
+      startCamera();
+    }
 
     // Logout
     logoutBtn.onclick = async () => {
@@ -473,6 +483,7 @@
       authChoice.classList.remove('hidden');
       loginForm.classList.add('hidden');
       registerForm.classList.add('hidden');
+      logoutBtn.style.display = 'none'; // ocultar botón cerrar sesión
     };
 
     // Cambiar cámara
@@ -502,6 +513,20 @@
     closeModal.onclick = closeModalFunc;
     nextBtn.onclick = showNext;
     prevBtn.onclick = showPrev;
+
+    // Al cargar la página checar si hay sesión activa
+    window.onload = async () => {
+      try {
+        const user = await account.get();
+        currentUserName = user.name || 'Usuario';
+        showCameraSection();
+      } catch {
+        // no sesión
+        logoutBtn.style.display = 'none';
+        cameraSection.classList.add('hidden');
+        authChoice.classList.remove('hidden');
+      }
+    };
   </script>
 </body>
 </html>
