@@ -2,67 +2,47 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RANDOMPHOTO</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
-      padding: 0;
+      min-height: 100vh;
       font-family: Arial, sans-serif;
-      background: #000;
+      background: #000; /* Fondo negro */
+      overflow-x: hidden;
+      padding-top: 20px;
       color: white;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      position: relative;
-      overflow: hidden;
+      justify-content: center;
     }
-
-    .random-image {
-      position: absolute;
-      max-width: 180px;
-      max-height: 180px;
-      border-radius: 10px;
-      z-index: 0;
-      opacity: 0.9;
+    #app-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 0 10px;
     }
 
     #login-section, #camera-section {
-      width: 100%;
-      max-width: 430px;
       display: flex;
       flex-direction: column;
       align-items: center;
+      text-align: center;
       padding: 20px;
-      z-index: 1;
+      background: #111;
+      border-radius: 12px;
     }
 
     input, button {
-      font-size: 1.1rem;
-      padding: 12px;
-      margin: 6px 0;
-      width: 100%;
-      border-radius: 10px;
+      font-size: 16px;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 6px;
       border: none;
     }
 
     input {
-      background: #fff;
-      color: #000;
-    }
-
-    video {
       width: 100%;
-      aspect-ratio: 9 / 16;
-      object-fit: cover;
-      border-radius: 20px;
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+      max-width: 300px;
     }
 
     #take-photo-btn {
@@ -71,81 +51,94 @@
       border-radius: 50%;
       background-color: white;
       border: none;
-      margin-top: 15px;
+      cursor: pointer;
+      margin: 15px 0;
     }
 
     #logout-btn {
       position: absolute;
-      top: 20px;
-      right: 20px;
+      top: 15px;
+      right: 15px;
       background-color: crimson;
       color: white;
-      padding: 8px 12px;
       border: none;
-      border-radius: 5px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
       z-index: 10;
     }
 
+    video {
+      width: 100%;
+      height: 640px;
+      object-fit: cover;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.3);
+      margin: 10px 0;
+    }
+
+    #photo {
+      max-width: 100%;
+      margin-top: 10px;
+      border-radius: 10px;
+    }
+
+    #gallery {
+      margin-top: 25px;
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    #gallery img {
+      width: 90px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      border: 2px solid white;
+      transition: border-color 0.3s;
+    }
+
+    #gallery img:hover {
+      border-color: #1e90ff;
+    }
+
     #login-error {
-      color: red;
+      color: #f33;
       font-weight: bold;
       margin-top: 10px;
     }
 
-    #photo {
-      width: 100%;
-      max-width: 360px;
-      border-radius: 10px;
-      margin-top: 15px;
-    }
+    .hidden { display: none; }
+
   </style>
 </head>
 <body>
 
-  <!-- Imágenes aleatorias -->
-  <script>
-    const imageUrls = [
-      "https://preview.redd.it/tener-una-imagen-random-hace-que-la-publicaci%C3%B3n-tenga-m%C3%A1s-v0-6frn21rqrtoc1.jpeg?width=640&crop=smart&auto=webp&s=e109a6ff409c369a7be16d3b7d8c885fa69c8abf",
-      "https://imgproxy.domestika.org/unsafe/w:820/plain/src://content-items/002/854/630/IMG_2798-original.jpg?1552473366",
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhLrq4s4xwmnVwnLBDcBPH7CZY4SSto1DoDA&s",
-      "https://i.imgur.com/JqKDdxj.jpeg",
-      "https://i.imgur.com/2pHTvuy.jpg",
-      "https://i.imgur.com/VlnsM2a.jpg",
-      "https://i.imgur.com/T9uN5Kx.jpeg",
-      "https://i.imgur.com/U0Z7K3E.jpeg",
-      "https://i.imgur.com/FjOmN09.jpeg"
-    ];
+  <div id="app-container">
+    <!-- Login -->
+    <div id="login-section">
+      <h1>RANDOMPHOTO</h1>
+      <input type="email" id="email" placeholder="Correo electrónico" autocomplete="username" /><br>
+      <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password" /><br>
+      <button id="login-btn">Entrar</button>
+      <div id="login-error"></div>
+    </div>
 
-    const maxImages = Math.floor(Math.random() * 2) + 1;
+    <!-- Cámara -->
+    <div id="camera-section" class="hidden" style="position: relative;">
+      <button id="logout-btn">Cerrar sesión</button>
+      <video id="video" autoplay playsinline></video>
+      <canvas id="canvas" class="hidden"></canvas>
+      <img id="photo" alt="Foto tomada" class="hidden" />
+      <button id="take-photo-btn" title="Tomar foto"></button>
 
-    window.onload = () => {
-      for (let i = 0; i < maxImages; i++) {
-        const img = document.createElement('img');
-        img.src = imageUrls[Math.floor(Math.random() * imageUrls.length)];
-        img.className = 'random-image';
-        img.style.top = Math.random() * (window.innerHeight - 200) + 'px';
-        img.style.left = Math.random() * (window.innerWidth - 200) + 'px';
-        document.body.appendChild(img);
-      }
-    };
-  </script>
-
-  <!-- Login -->
-  <div id="login-section">
-    <h1 style="color:white;">RANDOMPHOTO</h1>
-    <input type="email" id="email" placeholder="Correo electrónico" />
-    <input type="password" id="password" placeholder="Contraseña" />
-    <button id="login-btn">Entrar</button>
-    <div id="login-error"></div>
-  </div>
-
-  <!-- Cámara -->
-  <div id="camera-section" class="hidden">
-    <button id="logout-btn">Cerrar sesión</button>
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas" class="hidden"></canvas>
-    <img id="photo" alt="Foto tomada" class="hidden" />
-    <button id="take-photo-btn"></button>
+      <!-- Galería -->
+      <div id="gallery"></div>
+    </div>
   </div>
 
   <script>
@@ -161,6 +154,7 @@
     const canvas = document.getElementById('canvas');
     const photo = document.getElementById('photo');
     const takePhotoBtn = document.getElementById('take-photo-btn');
+    const gallery = document.getElementById('gallery');
 
     let stream = null;
 
@@ -178,6 +172,7 @@
         loginSection.classList.add('hidden');
         cameraSection.classList.remove('hidden');
         startCamera();
+        clearGallery();
       } else {
         loginError.textContent = 'Correo o contraseña incorrectos.';
       }
@@ -207,9 +202,31 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataUrl = canvas.toDataURL('image/png');
+
       photo.src = dataUrl;
       photo.classList.remove('hidden');
+
+      addPhotoToGallery(dataUrl);
     };
+
+    function addPhotoToGallery(dataUrl) {
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.alt = 'Foto tomada';
+      img.onclick = () => {
+        // Al hacer clic, la imagen se muestra en grande
+        photo.src = dataUrl;
+        photo.classList.remove('hidden');
+        // Opcional: hacer scroll al video o foto grande
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+      gallery.appendChild(img);
+    }
+
+    function clearGallery() {
+      gallery.innerHTML = '';
+      photo.classList.add('hidden');
+    }
 
     logoutBtn.onclick = () => {
       stopCamera();
@@ -217,8 +234,8 @@
       passwordInput.value = '';
       loginSection.classList.remove('hidden');
       cameraSection.classList.add('hidden');
-      video.classList.add('hidden');
       photo.classList.add('hidden');
+      clearGallery();
     };
   </script>
 
