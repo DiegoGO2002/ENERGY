@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -16,15 +16,6 @@
       align-items: center;
     }
 
-    .random-image {
-      position: absolute;
-      max-width: 200px;
-      max-height: 200px;
-      border-radius: 10px;
-      z-index: 0;
-      opacity: 0.9;
-    }
-
     #login-section, #camera-section {
       width: 100%;
       max-width: 400px;
@@ -32,7 +23,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      z-index: 1;
     }
 
     input, button {
@@ -58,6 +48,7 @@
       background-color: white;
       border: none;
       margin: 15px 0;
+      cursor: pointer;
     }
 
     #logout-btn {
@@ -70,6 +61,7 @@
       border: none;
       border-radius: 5px;
       z-index: 10;
+      cursor: pointer;
     }
 
     #login-error {
@@ -96,16 +88,16 @@
       flex-shrink: 0;
     }
 
+    /* Modal */
     #modal {
       position: fixed;
       top: 0; left: 0;
       width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.9);
-      display: flex;
+      background: rgba(0,0,0,0.95);
+      display: none;
       align-items: center;
       justify-content: center;
       z-index: 999;
-      display: none;
       flex-direction: column;
     }
 
@@ -141,30 +133,13 @@
       border-radius: 5px;
       cursor: pointer;
     }
+
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <script>
-    const imageUrls = [
-      "https://preview.redd.it/tener-una-imagen-random-hace-que-la-publicaci%C3%B3n-tenga-m%C3%A1s-v0-6frn21rqrtoc1.jpeg?width=640&crop=smart&auto=webp&s=e109a6ff409c369a7be16d3b7d8c885fa69c8abf",
-      "https://imgproxy.domestika.org/unsafe/w:820/plain/src://content-items/002/854/630/IMG_2798-original.jpg?1552473366",
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhLrq4s4xwmnVwnLBDcBPH7CZY4SSto1DoDA&s"
-    ];
 
-    const maxImages = Math.floor(Math.random() * 2) + 1;
-
-    window.onload = () => {
-      for (let i = 0; i < maxImages; i++) {
-        const img = document.createElement('img');
-        img.src = imageUrls[Math.floor(Math.random() * imageUrls.length)];
-        img.className = 'random-image';
-        img.style.top = Math.random() * (window.innerHeight - 200) + 'px';
-        img.style.left = Math.random() * (window.innerWidth - 200) + 'px';
-        document.body.appendChild(img);
-      }
-    };
-  </script>
-
+  <!-- Login -->
   <div id="login-section">
     <h1>RANDOMPHOTO</h1>
     <input type="email" id="email" placeholder="Correo electrónico" />
@@ -173,6 +148,7 @@
     <div id="login-error"></div>
   </div>
 
+  <!-- Cámara -->
   <div id="camera-section" class="hidden">
     <button id="logout-btn">Cerrar sesión</button>
     <video id="video" autoplay playsinline></video>
@@ -181,6 +157,7 @@
     <div id="gallery"></div>
   </div>
 
+  <!-- Modal -->
   <div id="modal">
     <button id="close-modal">Cerrar</button>
     <button class="nav-btn" id="prev-btn">&#10094;</button>
