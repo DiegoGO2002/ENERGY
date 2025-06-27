@@ -14,9 +14,59 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      min-height: 100vh;
+      padding: 20px;
     }
 
-    #login-section, #camera-section {
+    button {
+      font-size: 1.1rem;
+      padding: 12px 20px;
+      margin: 10px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      background-color: crimson;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: darkred;
+    }
+
+    .hidden { display: none; }
+
+    #auth-choice {
+      margin-top: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    form {
+      margin-top: 40px;
+      display: flex;
+      flex-direction: column;
+      max-width: 400px;
+      width: 100%;
+    }
+
+    input {
+      font-size: 1rem;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      border: none;
+    }
+
+    #login-error {
+      color: red;
+      font-weight: bold;
+      min-height: 1.2em;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    #camera-section {
       width: 100%;
       max-width: 400px;
       padding: 20px;
@@ -24,14 +74,6 @@
       flex-direction: column;
       align-items: center;
       position: relative;
-    }
-
-    input, button {
-      font-size: 1rem;
-      padding: 10px;
-      margin: 5px;
-      border-radius: 5px;
-      border: none;
     }
 
     video {
@@ -74,14 +116,6 @@
 
     #switch-camera-btn {
       left: 10px;
-    }
-
-    #login-error {
-      color: red;
-      font-weight: bold;
-      margin-top: 5px;
-      min-height: 1.2em;
-      text-align: center;
     }
 
     #gallery {
@@ -155,26 +189,41 @@
       border-radius: 5px;
       cursor: pointer;
     }
-
-    .hidden { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- Agregamos el SDK de Appwrite -->
+  <!-- SDK Appwrite -->
   <script src="https://cdn.jsdelivr.net/npm/appwrite@8.0.0/build/appwrite.min.js"></script>
 
-  <!-- Login -->
-  <div id="login-section">
-    <h1>RANDOMPHOTO</h1>
-    <input type="email" id="email" placeholder="Correo electrónico" />
-    <input type="password" id="password" placeholder="Contraseña" />
-    <input type="text" id="username" placeholder="Nombre de usuario (solo registro)" />
-    <button id="login-btn">Entrar / Registrar</button>
-    <div id="login-error"></div>
+  <!-- Elección entre login y registro -->
+  <div id="auth-choice">
+    <button id="show-login-btn">Iniciar Sesión</button>
+    <button id="show-register-btn">Registrarse</button>
   </div>
 
-  <!-- Cámara -->
+  <!-- Formulario Registro -->
+  <form id="register-form" class="hidden">
+    <h2>Registrarse</h2>
+    <input type="email" id="register-email" placeholder="Correo electrónico" required />
+    <input type="password" id="register-password" placeholder="Contraseña" required />
+    <input type="text" id="register-username" placeholder="Nombre de usuario" required />
+    <button type="submit">Registrarse</button>
+    <div id="login-error"></div>
+    <button type="button" id="cancel-register">Cancelar</button>
+  </form>
+
+  <!-- Formulario Login -->
+  <form id="login-form" class="hidden">
+    <h2>Iniciar Sesión</h2>
+    <input type="email" id="login-email" placeholder="Correo electrónico" required />
+    <input type="password" id="login-password" placeholder="Contraseña" required />
+    <button type="submit">Entrar</button>
+    <div id="login-error"></div>
+    <button type="button" id="cancel-login">Cancelar</button>
+  </form>
+
+  <!-- Cámara y fotos -->
   <div id="camera-section" class="hidden">
     <button id="logout-btn">Cerrar sesión</button>
     <button id="switch-camera-btn" title="Cambiar cámara">📷</button>
@@ -185,7 +234,7 @@
     <div id="gallery"></div>
   </div>
 
-  <!-- Modal -->
+  <!-- Modal para fotos -->
   <div id="modal">
     <button id="close-modal">Cerrar</button>
     <button class="nav-btn" id="prev-btn">&#10094;</button>
@@ -203,14 +252,31 @@
     const account = new window.Appwrite.Account(sdk);
     const storage = new window.Appwrite.Storage(sdk);
 
-    // Elementos DOM
-    const loginSection = document.getElementById('login-section');
-    const cameraSection = document.getElementById('camera-section');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const usernameInput = document.getElementById('username');
-    const loginBtn = document.getElementById('login-btn');
+    // Elementos DOM para elección auth
+    const authChoice = document.getElementById('auth-choice');
+    const showLoginBtn = document.getElementById('show-login-btn');
+    const showRegisterBtn = document.getElementById('show-register-btn');
+
+    // Formularios
+    const registerForm = document.getElementById('register-form');
+    const loginForm = document.getElementById('login-form');
+
+    // Inputs registro
+    const registerEmail = document.getElementById('register-email');
+    const registerPassword = document.getElementById('register-password');
+    const registerUsername = document.getElementById('register-username');
+
+    // Inputs login
+    const loginEmail = document.getElementById('login-email');
+    const loginPassword = document.getElementById('login-password');
+
+    // Otros elementos
+    const loginErrorRegister = registerForm.querySelector('#login-error');
+    const loginErrorLogin = loginForm.querySelector('#login-error');
+
+    // Cámara y UI
     const loginError = document.getElementById('login-error');
+    const cameraSection = document.getElementById('camera-section');
     const logoutBtn = document.getElementById('logout-btn');
     const switchCameraBtn = document.getElementById('switch-camera-btn');
     const usernameDisplay = document.getElementById('username-display');
@@ -228,8 +294,37 @@
     let photos = [];
     let currentIndex = 0;
     let useFrontCamera = true;
+    let currentUserName = '';
 
-    // Función para iniciar cámara con modo espejo en cámara frontal
+    // Mostrar formulario login
+    showLoginBtn.onclick = () => {
+      authChoice.classList.add('hidden');
+      loginForm.classList.remove('hidden');
+      loginErrorLogin.textContent = '';
+      loginForm.reset();
+    };
+
+    // Mostrar formulario registro
+    showRegisterBtn.onclick = () => {
+      authChoice.classList.add('hidden');
+      registerForm.classList.remove('hidden');
+      loginErrorRegister.textContent = '';
+      registerForm.reset();
+    };
+
+    // Cancelar registro
+    document.getElementById('cancel-register').onclick = () => {
+      registerForm.classList.add('hidden');
+      authChoice.classList.remove('hidden');
+    };
+
+    // Cancelar login
+    document.getElementById('cancel-login').onclick = () => {
+      loginForm.classList.add('hidden');
+      authChoice.classList.remove('hidden');
+    };
+
+    // Función para iniciar cámara
     async function startCamera() {
       stopCamera();
       const constraints = {
@@ -255,7 +350,7 @@
       }
     }
 
-    // Renderizar galería de fotos
+    // Renderizar galería
     function renderGallery() {
       gallery.innerHTML = '';
       photos.forEach((src, index) => {
@@ -266,7 +361,7 @@
       });
     }
 
-    // Modal
+    // Modal fotos
     function openModal(index) {
       currentIndex = index;
       modalImg.src = photos[currentIndex];
@@ -284,10 +379,9 @@
       modalImg.src = photos[currentIndex];
     }
 
-    // Función para subir foto a Appwrite Storage
+    // Subir foto a Appwrite Storage
     async function uploadPhoto(dataUrl) {
       try {
-        // Convertir dataURL a Blob
         function dataURLtoBlob(dataurl) {
           const arr = dataurl.split(',');
           const mime = arr[0].match(/:(.*?);/)[1];
@@ -302,8 +396,7 @@
 
         const blob = dataURLtoBlob(dataUrl);
         const file = new File([blob], `photo_${Date.now()}.png`, {type: blob.type});
-
-        // Subir archivo a bucket (reemplaza 'your_bucket_id' con el ID real)
+        // Cambia 'your_bucket_id' por el ID real de tu bucket en Appwrite
         const response = await storage.createFile('your_bucket_id', file);
         console.log('Foto subida:', response);
         alert('Foto subida con éxito');
@@ -313,7 +406,82 @@
       }
     }
 
-    // Evento botón tomar foto
+    // Registro
+    registerForm.onsubmit = async e => {
+      e.preventDefault();
+      loginErrorRegister.textContent = '';
+      const email = registerEmail.value.trim();
+      const password = registerPassword.value.trim();
+      const username = registerUsername.value.trim();
+
+      if (!email || !password || !username) {
+        loginErrorRegister.textContent = 'Todos los campos son obligatorios.';
+        return;
+      }
+
+      try {
+        await account.create(email, password, username);
+        alert('Usuario creado exitosamente, ahora inicia sesión.');
+        registerForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+        loginEmail.value = email;
+        loginPassword.value = password;
+      } catch (error) {
+        if (error.code === 409) {
+          loginErrorRegister.textContent = 'Este correo ya está registrado.';
+        } else {
+          loginErrorRegister.textContent = 'Error al registrar: ' + error.message;
+        }
+      }
+    };
+
+    // Login
+    loginForm.onsubmit = async e => {
+      e.preventDefault();
+      loginErrorLogin.textContent = '';
+      const email = loginEmail.value.trim();
+      const password = loginPassword.value.trim();
+
+      if (!email || !password) {
+        loginErrorLogin.textContent = 'Email y contraseña son obligatorios.';
+        return;
+      }
+
+      try {
+        await account.createSession(email, password);
+        const user = await account.get();
+        currentUserName = user.name || 'Usuario';
+        authChoice.classList.add('hidden');
+        loginForm.classList.add('hidden');
+        cameraSection.classList.remove('hidden');
+        usernameDisplay.textContent = `Usuario: ${currentUserName}`;
+        startCamera();
+      } catch (err) {
+        loginErrorLogin.textContent = 'Error de inicio de sesión: ' + err.message;
+      }
+    };
+
+    // Logout
+    logoutBtn.onclick = async () => {
+      try {
+        await account.deleteSession('current');
+      } catch {}
+      stopCamera();
+      photos = [];
+      renderGallery();
+      cameraSection.classList.add('hidden');
+      authChoice.classList.remove('hidden');
+      loginForm.classList.add('hidden');
+      registerForm.classList.add('hidden');
+    };
+
+    // Cambiar cámara
+    switchCameraBtn.onclick = () => {
+      useFrontCamera = !useFrontCamera;
+      startCamera();
+    };
+
+    // Tomar foto y subir
     takePhotoBtn.onclick = async () => {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -330,71 +498,7 @@
       await uploadPhoto(dataUrl);
     };
 
-    // Evento login/registro
-    loginBtn.onclick = async () => {
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
-      const username = usernameInput.value.trim();
-
-      loginError.textContent = '';
-
-      if (!email || !password) {
-        loginError.textContent = 'Email y contraseña son obligatorios.';
-        return;
-      }
-
-      if (!username) {
-        loginError.textContent = 'Ingresa un nombre de usuario para registrarte.';
-        return;
-      }
-
-      try {
-        // Intentar crear usuario (registro)
-        await account.create(email, password, username);
-        alert('Usuario creado exitosamente. Iniciando sesión...');
-      } catch (error) {
-        // Si ya existe el usuario, se ignora el error 409 y se intenta iniciar sesión
-        if (error.code === 409) {
-          console.log('Usuario ya existe, intentando iniciar sesión...');
-        } else {
-          loginError.textContent = 'Error al crear usuario: ' + error.message;
-          return;
-        }
-      }
-
-      try {
-        // Intentar iniciar sesión
-        await account.createSession(email, password);
-        const user = await account.get();
-        loginSection.classList.add('hidden');
-        cameraSection.classList.remove('hidden');
-        usernameDisplay.textContent = `Usuario: ${user.name || username}`;
-        startCamera();
-      } catch (err) {
-        loginError.textContent = 'Error de inicio de sesión: ' + err.message;
-      }
-    };
-
-    logoutBtn.onclick = async () => {
-      try {
-        await account.deleteSession('current');
-      } catch {}
-      stopCamera();
-      emailInput.value = '';
-      passwordInput.value = '';
-      usernameInput.value = '';
-      usernameDisplay.textContent = '';
-      loginSection.classList.remove('hidden');
-      cameraSection.classList.add('hidden');
-      photos = [];
-      renderGallery();
-    };
-
-    switchCameraBtn.onclick = () => {
-      useFrontCamera = !useFrontCamera;
-      startCamera();
-    };
-
+    // Modal fotos
     closeModal.onclick = closeModalFunc;
     nextBtn.onclick = showNext;
     prevBtn.onclick = showPrev;
