@@ -23,6 +23,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      position: relative;
     }
 
     input, button {
@@ -41,6 +42,10 @@
       box-shadow: 0 0 20px rgba(255,255,255,0.3);
     }
 
+    video.mirror {
+      transform: scaleX(-1);
+    }
+
     #take-photo-btn {
       width: 60px;
       height: 60px;
@@ -51,17 +56,24 @@
       cursor: pointer;
     }
 
-    #logout-btn {
+    #logout-btn, #switch-camera-btn {
       position: absolute;
       top: 10px;
-      right: 10px;
       background-color: crimson;
       color: white;
       padding: 8px 12px;
       border: none;
       border-radius: 5px;
-      z-index: 10;
       cursor: pointer;
+      z-index: 10;
+    }
+
+    #logout-btn {
+      right: 10px;
+    }
+
+    #switch-camera-btn {
+      left: 10px;
     }
 
     #login-error {
@@ -86,6 +98,13 @@
       border-radius: 10px;
       cursor: pointer;
       flex-shrink: 0;
+    }
+
+    #username-display {
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-align: center;
     }
 
     /* Modal */
@@ -144,6 +163,7 @@
     <h1>RANDOMPHOTO</h1>
     <input type="email" id="email" placeholder="Correo electrónico" />
     <input type="password" id="password" placeholder="Contraseña" />
+    <input type="text" id="username" placeholder="Nombre de usuario" />
     <button id="login-btn">Entrar</button>
     <div id="login-error"></div>
   </div>
@@ -151,9 +171,11 @@
   <!-- Cámara -->
   <div id="camera-section" class="hidden">
     <button id="logout-btn">Cerrar sesión</button>
+    <button id="switch-camera-btn" title="Cambiar cámara">📷</button>
+    <div id="username-display"></div>
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas" class="hidden"></canvas>
-    <button id="take-photo-btn"></button>
+    <button id="take-photo-btn" title="Tomar foto"></button>
     <div id="gallery"></div>
   </div>
 
@@ -170,9 +192,13 @@
     const cameraSection = document.getElementById('camera-section');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
+    const usernameInput = document.getElementById('username');
     const loginBtn = document.getElementById('login-btn');
     const loginError = document.getElementById('login-error');
     const logoutBtn = document.getElementById('logout-btn');
+    const switchCameraBtn = document.getElementById('switch-camera-btn');
+    const usernameDisplay = document.getElementById('username-display');
+
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const takePhotoBtn = document.getElementById('take-photo-btn');
@@ -186,18 +212,28 @@
     let stream = null;
     let photos = [];
     let currentIndex = 0;
+    let useFrontCamera = true; // por defecto cámara frontal
+
+    const users = {
+      'diego@random.com': 'Dg251102',
+      'afeni@random.com': '123456'
+    };
 
     loginBtn.onclick = () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
-      const users = {
-        'diego@random.com': 'Dg251102',
-        'afeni@random.com': '123456'
-      };
+      const username = usernameInput.value.trim();
+
+      loginError.textContent = '';
+      if (!username) {
+        loginError.textContent = 'Por favor, ingresa un nombre de usuario.';
+        return;
+      }
 
       if (users[email] && users[email] === password) {
         loginSection.classList.add('hidden');
         cameraSection.classList.remove('hidden');
+        usernameDisplay.textContent = `Usuario: ${username}`;
         startCamera();
       } else {
         loginError.textContent = 'Correo o contraseña incorrectos.';
@@ -205,9 +241,22 @@
     };
 
     async function startCamera() {
+      stopCamera();
+
+      const constraints = {
+        video: { facingMode: useFrontCamera ? 'user' : 'environment' }
+      };
+
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = stream;
+
+        // Modo espejo solo para cámara frontal
+        if (useFrontCamera) {
+          video.classList.add('mirror');
+        } else {
+          video.classList.remove('mirror');
+        }
       } catch (err) {
         alert('No se pudo acceder a la cámara: ' + err.message);
       }
@@ -271,10 +320,17 @@
       stopCamera();
       emailInput.value = '';
       passwordInput.value = '';
+      usernameInput.value = '';
+      usernameDisplay.textContent = '';
       loginSection.classList.remove('hidden');
       cameraSection.classList.add('hidden');
       photos = [];
       renderGallery();
+    };
+
+    switchCameraBtn.onclick = () => {
+      useFrontCamera = !useFrontCamera;
+      startCamera();
     };
   </script>
 </body>
