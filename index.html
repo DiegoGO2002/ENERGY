@@ -5,13 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RANDOMPHOTO</title>
   <style>
+    * { box-sizing: border-box; }
     body {
       margin: 0;
-      min-height: 100vh;
       font-family: Arial, sans-serif;
       background: #000;
-      overflow-x: hidden;
-      padding-top: 20px;
       color: white;
       display: flex;
       flex-direction: column;
@@ -28,19 +26,17 @@
     }
 
     #login-section, #camera-section {
-      position: relative;
-      z-index: 1;
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      text-align: center;
-      padding: 20px;
-      width: 100%;
-      max-width: 400px;
+      z-index: 1;
     }
 
     input, button {
-      font-size: 1.2rem;
+      font-size: 1rem;
       padding: 10px;
       margin: 5px;
       border-radius: 5px;
@@ -53,13 +49,6 @@
       object-fit: cover;
       border-radius: 20px;
       box-shadow: 0 0 20px rgba(255,255,255,0.3);
-      margin: 20px 0;
-    }
-
-    #photo {
-      max-width: 300px;
-      border-radius: 10px;
-      margin: 10px;
     }
 
     #take-photo-btn {
@@ -68,8 +57,7 @@
       border-radius: 50%;
       background-color: white;
       border: none;
-      cursor: pointer;
-      margin-top: 10px;
+      margin: 15px 0;
     }
 
     #logout-btn {
@@ -78,27 +66,25 @@
       right: 10px;
       background-color: crimson;
       color: white;
-      border: none;
       padding: 8px 12px;
+      border: none;
       border-radius: 5px;
-      cursor: pointer;
-      z-index: 2;
+      z-index: 10;
     }
 
     #login-error {
       color: red;
       font-weight: bold;
-      margin-top: 10px;
     }
 
     #gallery {
-      margin-top: 10px;
-      width: 100%;
-      max-width: 400px;
       display: flex;
       gap: 10px;
       overflow-x: auto;
-      padding-bottom: 20px;
+      width: 100%;
+      max-width: 400px;
+      padding: 10px;
+      margin-bottom: 20px;
     }
 
     #gallery img {
@@ -106,55 +92,58 @@
       height: 100px;
       object-fit: cover;
       border-radius: 10px;
-      box-shadow: 0 0 8px rgba(255,255,255,0.6);
       cursor: pointer;
       flex-shrink: 0;
     }
 
-    #image-viewer {
+    #modal {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.95);
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.9);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 99;
+      z-index: 999;
+      display: none;
       flex-direction: column;
     }
 
-    #image-viewer img {
-      max-width: 90%;
-      max-height: 80vh;
+    #modal img {
+      max-width: 90vw;
+      max-height: 90vh;
       border-radius: 10px;
     }
 
-    #close-viewer {
+    .nav-btn {
       position: absolute;
-      top: 20px;
-      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
       font-size: 2rem;
-      color: white;
-      cursor: pointer;
-    }
-
-    #prev-btn, #next-btn {
-      background: none;
+      background: transparent;
       border: none;
       color: white;
-      font-size: 2rem;
       cursor: pointer;
-      margin: 10px;
+      padding: 10px;
     }
 
-    #prev-btn { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); }
-    #next-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
+    #prev-btn { left: 10px; }
+    #next-btn { right: 10px; }
+
+    #close-modal {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: crimson;
+      border: none;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-
   <script>
     const imageUrls = [
       "https://preview.redd.it/tener-una-imagen-random-hace-que-la-publicaci%C3%B3n-tenga-m%C3%A1s-v0-6frn21rqrtoc1.jpeg?width=640&crop=smart&auto=webp&s=e109a6ff409c369a7be16d3b7d8c885fa69c8abf",
@@ -178,8 +167,8 @@
 
   <div id="login-section">
     <h1>RANDOMPHOTO</h1>
-    <input type="email" id="email" placeholder="Correo electrónico" /><br>
-    <input type="password" id="password" placeholder="Contraseña" /><br>
+    <input type="email" id="email" placeholder="Correo electrónico" />
+    <input type="password" id="password" placeholder="Contraseña" />
     <button id="login-btn">Entrar</button>
     <div id="login-error"></div>
   </div>
@@ -189,36 +178,33 @@
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas" class="hidden"></canvas>
     <button id="take-photo-btn"></button>
+    <div id="gallery"></div>
   </div>
 
-  <div id="gallery" class="hidden"></div>
-
-  <div id="image-viewer" class="hidden">
-    <span id="close-viewer">✕</span>
-    <img id="viewer-img" src="" />
-    <button id="prev-btn">←</button>
-    <button id="next-btn">→</button>
+  <div id="modal">
+    <button id="close-modal">Cerrar</button>
+    <button class="nav-btn" id="prev-btn">&#10094;</button>
+    <img id="modal-img" src="" />
+    <button class="nav-btn" id="next-btn">&#10095;</button>
   </div>
 
   <script>
     const loginSection = document.getElementById('login-section');
     const cameraSection = document.getElementById('camera-section');
-    const gallery = document.getElementById('gallery');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const loginBtn = document.getElementById('login-btn');
     const loginError = document.getElementById('login-error');
     const logoutBtn = document.getElementById('logout-btn');
-
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const takePhotoBtn = document.getElementById('take-photo-btn');
-
-    const viewer = document.getElementById("image-viewer");
-    const viewerImg = document.getElementById("viewer-img");
-    const closeViewer = document.getElementById("close-viewer");
-    const prevBtn = document.getElementById("prev-btn");
-    const nextBtn = document.getElementById("next-btn");
+    const gallery = document.getElementById('gallery');
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modal-img');
+    const closeModal = document.getElementById('close-modal');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
 
     let stream = null;
     let photos = [];
@@ -227,8 +213,6 @@
     loginBtn.onclick = () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
-      loginError.textContent = '';
-
       const users = {
         'diego@random.com': 'Dg251102',
         'afeni@random.com': '123456'
@@ -237,7 +221,6 @@
       if (users[email] && users[email] === password) {
         loginSection.classList.add('hidden');
         cameraSection.classList.remove('hidden');
-        gallery.classList.remove('hidden');
         startCamera();
       } else {
         loginError.textContent = 'Correo o contraseña incorrectos.';
@@ -248,8 +231,6 @@
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
-        video.classList.remove('hidden');
-        takePhotoBtn.disabled = false;
       } catch (err) {
         alert('No se pudo acceder a la cámara: ' + err.message);
       }
@@ -268,57 +249,46 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataUrl = canvas.toDataURL('image/png');
+
       photos.unshift(dataUrl);
       if (photos.length > 5) photos.pop();
+
       renderGallery();
     };
 
     function renderGallery() {
       gallery.innerHTML = '';
-      photos.forEach((src, i) => {
+      photos.forEach((src, index) => {
         const img = document.createElement('img');
         img.src = src;
-        img.onclick = () => openViewer(i);
+        img.onclick = () => openModal(index);
         gallery.appendChild(img);
       });
     }
 
-    function openViewer(index) {
+    function openModal(index) {
       currentIndex = index;
-      viewerImg.src = photos[currentIndex];
-      viewer.classList.remove("hidden");
+      modalImg.src = photos[currentIndex];
+      modal.style.display = 'flex';
     }
 
-    function updateViewer() {
-      viewerImg.src = photos[currentIndex];
+    function closeModalFunc() {
+      modal.style.display = 'none';
     }
 
-    closeViewer.onclick = () => viewer.classList.add("hidden");
+    function showNext() {
+      currentIndex = (currentIndex + 1) % photos.length;
+      modalImg.src = photos[currentIndex];
+    }
 
-    prevBtn.onclick = () => {
-      if (currentIndex > 0) {
-        currentIndex--;
-        updateViewer();
-      }
-    };
+    function showPrev() {
+      currentIndex = (currentIndex - 1 + photos.length) % photos.length;
+      modalImg.src = photos[currentIndex];
+    }
 
-    nextBtn.onclick = () => {
-      if (currentIndex < photos.length - 1) {
-        currentIndex++;
-        updateViewer();
-      }
-    };
-
-    let startX = 0;
-    viewerImg.addEventListener('touchstart', (e) => {
-      startX = e.touches[0].clientX;
-    });
-
-    viewerImg.addEventListener('touchend', (e) => {
-      const endX = e.changedTouches[0].clientX;
-      if (endX < startX - 30) nextBtn.click();
-      else if (endX > startX + 30) prevBtn.click();
-    });
+    closeModal.onclick = closeModalFunc;
+    nextBtn.onclick = showNext;
+    prevBtn.onclick = showPrev;
 
     logoutBtn.onclick = () => {
       stopCamera();
@@ -326,8 +296,6 @@
       passwordInput.value = '';
       loginSection.classList.remove('hidden');
       cameraSection.classList.add('hidden');
-      gallery.classList.add('hidden');
-      video.classList.add('hidden');
       photos = [];
       renderGallery();
     };
