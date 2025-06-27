@@ -18,7 +18,6 @@
       align-items: center;
     }
 
-    /* Imágenes random de fondo */
     .random-image {
       position: absolute;
       max-width: 200px;
@@ -92,7 +91,6 @@
       margin-top: 10px;
     }
 
-    /* Galería de fotos pequeñas */
     #gallery {
       margin-top: 10px;
       width: 100%;
@@ -113,17 +111,55 @@
       flex-shrink: 0;
     }
 
+    #image-viewer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99;
+      flex-direction: column;
+    }
+
+    #image-viewer img {
+      max-width: 90%;
+      max-height: 80vh;
+      border-radius: 10px;
+    }
+
+    #close-viewer {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 2rem;
+      color: white;
+      cursor: pointer;
+    }
+
+    #prev-btn, #next-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    #prev-btn { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); }
+    #next-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
   </style>
 </head>
 <body>
 
-  <!-- Imágenes random de fondo -->
   <script>
     const imageUrls = [
       "https://preview.redd.it/tener-una-imagen-random-hace-que-la-publicaci%C3%B3n-tenga-m%C3%A1s-v0-6frn21rqrtoc1.jpeg?width=640&crop=smart&auto=webp&s=e109a6ff409c369a7be16d3b7d8c885fa69c8abf",
       "https://imgproxy.domestika.org/unsafe/w:820/plain/src://content-items/002/854/630/IMG_2798-original.jpg?1552473366",
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhLrq4s4xwmnVwnLBDcBPH7CZY4SSto1DoDA&s",
-      // Puedes agregar más URLs aquí
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhLrq4s4xwmnVwnLBDcBPH7CZY4SSto1DoDA&s"
     ];
 
     const maxImages = Math.floor(Math.random() * 2) + 1;
@@ -140,7 +176,6 @@
     };
   </script>
 
-  <!-- Login -->
   <div id="login-section">
     <h1>RANDOMPHOTO</h1>
     <input type="email" id="email" placeholder="Correo electrónico" /><br>
@@ -149,7 +184,6 @@
     <div id="login-error"></div>
   </div>
 
-  <!-- Cámara -->
   <div id="camera-section" class="hidden">
     <button id="logout-btn">Cerrar sesión</button>
     <video id="video" autoplay playsinline></video>
@@ -157,9 +191,13 @@
     <button id="take-photo-btn"></button>
   </div>
 
-  <!-- Galería -->
-  <div id="gallery" class="hidden" title="Galería de fotos tomadas">
-    <!-- Fotos tomadas se agregarán aquí -->
+  <div id="gallery" class="hidden"></div>
+
+  <div id="image-viewer" class="hidden">
+    <span id="close-viewer">✕</span>
+    <img id="viewer-img" src="" />
+    <button id="prev-btn">←</button>
+    <button id="next-btn">→</button>
   </div>
 
   <script>
@@ -176,8 +214,15 @@
     const canvas = document.getElementById('canvas');
     const takePhotoBtn = document.getElementById('take-photo-btn');
 
+    const viewer = document.getElementById("image-viewer");
+    const viewerImg = document.getElementById("viewer-img");
+    const closeViewer = document.getElementById("close-viewer");
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+
     let stream = null;
     let photos = [];
+    let currentIndex = 0;
 
     loginBtn.onclick = () => {
       const email = emailInput.value.trim();
@@ -223,28 +268,57 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataUrl = canvas.toDataURL('image/png');
-
-      // Guardar foto en arreglo
-      photos.unshift(dataUrl); // agregar al inicio
-      if (photos.length > 5) photos.pop(); // eliminar la más antigua si hay más de 5
-
+      photos.unshift(dataUrl);
+      if (photos.length > 5) photos.pop();
       renderGallery();
     };
 
     function renderGallery() {
-      gallery.innerHTML = ''; // limpiar
-
+      gallery.innerHTML = '';
       photos.forEach((src, i) => {
         const img = document.createElement('img');
         img.src = src;
-        img.title = `Foto ${i + 1}`;
-        img.onclick = () => {
-          // Opcional: ampliar imagen al hacer clic
-          window.open(src, '_blank');
-        };
+        img.onclick = () => openViewer(i);
         gallery.appendChild(img);
       });
     }
+
+    function openViewer(index) {
+      currentIndex = index;
+      viewerImg.src = photos[currentIndex];
+      viewer.classList.remove("hidden");
+    }
+
+    function updateViewer() {
+      viewerImg.src = photos[currentIndex];
+    }
+
+    closeViewer.onclick = () => viewer.classList.add("hidden");
+
+    prevBtn.onclick = () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateViewer();
+      }
+    };
+
+    nextBtn.onclick = () => {
+      if (currentIndex < photos.length - 1) {
+        currentIndex++;
+        updateViewer();
+      }
+    };
+
+    let startX = 0;
+    viewerImg.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+    });
+
+    viewerImg.addEventListener('touchend', (e) => {
+      const endX = e.changedTouches[0].clientX;
+      if (endX < startX - 30) nextBtn.click();
+      else if (endX > startX + 30) prevBtn.click();
+    });
 
     logoutBtn.onclick = () => {
       stopCamera();
@@ -258,6 +332,5 @@
       renderGallery();
     };
   </script>
-
 </body>
 </html>
