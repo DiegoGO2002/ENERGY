@@ -58,13 +58,11 @@
 
 <h1>RANDOMPHOTO</h1>
 
-<!-- Selección inicial -->
 <div class="btn-group" id="start-buttons">
   <button id="show-login">Iniciar sesión</button>
   <button id="show-register">Registrarse</button>
 </div>
 
-<!-- Login -->
 <form id="login-form" class="hidden">
   <input type="email" id="login-email" placeholder="Correo" required />
   <input type="password" id="login-password" placeholder="Contraseña" required />
@@ -73,7 +71,6 @@
   <div id="login-error" style="color: red;"></div>
 </form>
 
-<!-- Registro -->
 <form id="register-form" class="hidden">
   <input type="email" id="register-email" placeholder="Correo" required />
   <input type="password" id="register-password" placeholder="Contraseña" required />
@@ -83,7 +80,6 @@
   <div id="register-error" style="color: red;"></div>
 </form>
 
-<!-- Cámara -->
 <div id="camera-section" class="hidden">
   <h3 id="welcome-user"></h3>
   <video id="video" autoplay playsinline></video>
@@ -93,16 +89,12 @@
   <button id="logout">Cerrar sesión</button>
 </div>
 
-<!-- Appwrite SDK -->
-<script src="https://cdn.jsdelivr.net/npm/appwrite@8.0.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.1"></script>
 <script>
   const sdk = new window.Appwrite();
-  sdk
-    .setEndpoint('https://nyc.cloud.appwrite.io/v1')
-    .setProject('685ef5dd0010e2c90647');
+  sdk.setEndpoint('https://nyc.cloud.appwrite.io/v1').setProject('685ef5dd0010e2c90647');
   const account = new sdk.Account();
 
-  // Elementos
   const startButtons = document.getElementById('start-buttons');
   const showLoginBtn = document.getElementById('show-login');
   const showRegisterBtn = document.getElementById('show-register');
@@ -124,30 +116,29 @@
   const logoutBtn = document.getElementById('logout');
 
   let stream = null;
-  let photos = [];
 
-  // Mostrar formularios
   showLoginBtn.onclick = () => {
     startButtons.classList.add('hidden');
     loginForm.classList.remove('hidden');
   };
+
   showRegisterBtn.onclick = () => {
     startButtons.classList.add('hidden');
     registerForm.classList.remove('hidden');
   };
+
   document.getElementById('cancel-login').onclick = () => {
     loginForm.classList.add('hidden');
     startButtons.classList.remove('hidden');
   };
+
   document.getElementById('cancel-register').onclick = () => {
     registerForm.classList.add('hidden');
     startButtons.classList.remove('hidden');
   };
 
-  // Login
   loginForm.onsubmit = async (e) => {
     e.preventDefault();
-    loginError.textContent = '';
     try {
       await account.createEmailSession(loginEmail.value, loginPassword.value);
       const user = await account.get();
@@ -157,17 +148,10 @@
     }
   };
 
-  // Registro
   registerForm.onsubmit = async (e) => {
     e.preventDefault();
-    registerError.textContent = '';
     try {
-      await account.create(
-        'unique()',
-        registerEmail.value,
-        registerPassword.value,
-        registerUsername.value
-      );
+      await account.create('unique()', registerEmail.value, registerPassword.value, registerUsername.value);
       await account.createEmailSession(registerEmail.value, registerPassword.value);
       iniciarApp(registerUsername.value);
     } catch (error) {
@@ -175,17 +159,12 @@
     }
   };
 
-  // Mostrar app
   async function iniciarApp(nombre) {
     loginForm.classList.add('hidden');
     registerForm.classList.add('hidden');
     startButtons.classList.add('hidden');
     cameraSection.classList.remove('hidden');
     welcomeUser.textContent = 'Bienvenido, ' + nombre;
-    await iniciarCamara();
-  }
-
-  async function iniciarCamara() {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: true });
       video.srcObject = stream;
@@ -201,7 +180,6 @@
     location.reload();
   };
 
-  // Tomar foto
   takePhotoBtn.onclick = () => {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
@@ -209,20 +187,17 @@
     const dataUrl = canvas.toDataURL('image/png');
     const img = document.createElement('img');
     img.src = dataUrl;
-    photos.unshift(dataUrl);
     gallery.prepend(img);
   };
 
-  // Verificar sesión al cargar
   window.onload = async () => {
     try {
       const user = await account.get();
       iniciarApp(user.name);
     } catch {
-      // No hay sesión activa
+      // No hay sesión
     }
   };
 </script>
-
 </body>
 </html>
