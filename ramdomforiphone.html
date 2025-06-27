@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>RANDOMPHOTO</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .random-image {
+      position: absolute;
+      max-width: 180px;
+      max-height: 180px;
+      border-radius: 10px;
+      z-index: 0;
+      opacity: 0.9;
+    }
+
+    #login-section, #camera-section {
+      width: 100%;
+      max-width: 430px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      z-index: 1;
+    }
+
+    input, button {
+      font-size: 1.1rem;
+      padding: 12px;
+      margin: 6px 0;
+      width: 100%;
+      border-radius: 10px;
+      border: none;
+    }
+
+    input {
+      background: #fff;
+      color: #000;
+    }
+
+    video {
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      object-fit: cover;
+      border-radius: 20px;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+
+    #take-photo-btn {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background-color: white;
+      border: none;
+      margin-top: 15px;
+    }
+
+    #logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: crimson;
+      color: white;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 5px;
+      z-index: 10;
+    }
+
+    #login-error {
+      color: red;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    #photo {
+      width: 100%;
+      max-width: 360px;
+      border-radius: 10px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Imágenes aleatorias -->
+  <script>
+    const imageUrls = [
+      "https://preview.redd.it/tener-una-imagen-random-hace-que-la-publicaci%C3%B3n-tenga-m%C3%A1s-v0-6frn21rqrtoc1.jpeg?width=640&crop=smart&auto=webp&s=e109a6ff409c369a7be16d3b7d8c885fa69c8abf",
+      "https://imgproxy.domestika.org/unsafe/w:820/plain/src://content-items/002/854/630/IMG_2798-original.jpg?1552473366",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhLrq4s4xwmnVwnLBDcBPH7CZY4SSto1DoDA&s"
+    ];
+
+    const maxImages = Math.floor(Math.random() * 2) + 1;
+
+    window.onload = () => {
+      for (let i = 0; i < maxImages; i++) {
+        const img = document.createElement('img');
+        img.src = imageUrls[Math.floor(Math.random() * imageUrls.length)];
+        img.className = 'random-image';
+        img.style.top = Math.random() * (window.innerHeight - 200) + 'px';
+        img.style.left = Math.random() * (window.innerWidth - 200) + 'px';
+        document.body.appendChild(img);
+      }
+    };
+  </script>
+
+  <!-- Login -->
+  <div id="login-section">
+    <h1 style="color:white;">RANDOMPHOTO</h1>
+    <input type="email" id="email" placeholder="Correo electrónico" />
+    <input type="password" id="password" placeholder="Contraseña" />
+    <button id="login-btn">Entrar</button>
+    <div id="login-error"></div>
+  </div>
+
+  <!-- Cámara -->
+  <div id="camera-section" class="hidden">
+    <button id="logout-btn">Cerrar sesión</button>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" class="hidden"></canvas>
+    <img id="photo" alt="Foto tomada" class="hidden" />
+    <button id="take-photo-btn"></button>
+  </div>
+
+  <script>
+    const loginSection = document.getElementById('login-section');
+    const cameraSection = document.getElementById('camera-section');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const loginBtn = document.getElementById('login-btn');
+    const loginError = document.getElementById('login-error');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const photo = document.getElementById('photo');
+    const takePhotoBtn = document.getElementById('take-photo-btn');
+
+    let stream = null;
+
+    loginBtn.onclick = () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      loginError.textContent = '';
+
+      const users = {
+        'diego@random.com': 'Dg251102',
+        'afeni@random.com': '123456'
+      };
+
+      if (users[email] && users[email] === password) {
+        loginSection.classList.add('hidden');
+        cameraSection.classList.remove('hidden');
+        startCamera();
+      } else {
+        loginError.textContent = 'Correo o contraseña incorrectos.';
+      }
+    };
+
+    async function startCamera() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        video.classList.remove('hidden');
+        takePhotoBtn.disabled = false;
+      } catch (err) {
+        alert('No se pudo acceder a la cámara: ' + err.message);
+      }
+    }
+
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+    }
+
+    takePhotoBtn.onclick = () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL('image/png');
+      photo.src = dataUrl;
+      photo.classList.remove('hidden');
+    };
+
+    logoutBtn.onclick = () => {
+      stopCamera();
+      emailInput.value = '';
+      passwordInput.value = '';
+      loginSection.classList.remove('hidden');
+      cameraSection.classList.add('hidden');
+      video.classList.add('hidden');
+      photo.classList.add('hidden');
+    };
+  </script>
+
+</body>
+</html>
