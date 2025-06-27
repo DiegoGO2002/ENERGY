@@ -15,7 +15,6 @@
       flex-direction: column;
       align-items: center;
     }
-
     #login-section, #camera-section {
       width: 100%;
       max-width: 400px;
@@ -25,7 +24,6 @@
       align-items: center;
       position: relative;
     }
-
     input, button {
       font-size: 1rem;
       padding: 10px;
@@ -33,7 +31,6 @@
       border-radius: 5px;
       border: none;
     }
-
     video {
       width: 100%;
       height: 640px;
@@ -41,11 +38,9 @@
       border-radius: 20px;
       box-shadow: 0 0 20px rgba(255,255,255,0.3);
     }
-
     video.mirror {
       transform: scaleX(-1);
     }
-
     #take-photo-btn {
       width: 60px;
       height: 60px;
@@ -55,7 +50,6 @@
       margin: 15px 0;
       cursor: pointer;
     }
-
     #logout-btn, #switch-camera-btn {
       position: absolute;
       top: 10px;
@@ -67,20 +61,17 @@
       cursor: pointer;
       z-index: 10;
     }
-
     #logout-btn {
       right: 10px;
     }
-
     #switch-camera-btn {
       left: 10px;
     }
-
     #login-error {
       color: red;
       font-weight: bold;
+      min-height: 1.2em;
     }
-
     #gallery {
       display: flex;
       gap: 10px;
@@ -90,7 +81,6 @@
       padding: 10px;
       margin-bottom: 20px;
     }
-
     #gallery img {
       width: 70px;
       height: 100px;
@@ -99,15 +89,12 @@
       cursor: pointer;
       flex-shrink: 0;
     }
-
     #username-display {
       margin-bottom: 10px;
       font-size: 1.2rem;
       font-weight: bold;
       text-align: center;
     }
-
-    /* Modal */
     #modal {
       position: fixed;
       top: 0; left: 0;
@@ -119,13 +106,11 @@
       z-index: 999;
       flex-direction: column;
     }
-
     #modal img {
       max-width: 90vw;
       max-height: 90vh;
       border-radius: 10px;
     }
-
     .nav-btn {
       position: absolute;
       top: 50%;
@@ -137,10 +122,8 @@
       cursor: pointer;
       padding: 10px;
     }
-
     #prev-btn { left: 10px; }
     #next-btn { right: 10px; }
-
     #close-modal {
       position: absolute;
       top: 10px;
@@ -152,7 +135,6 @@
       border-radius: 5px;
       cursor: pointer;
     }
-
     .hidden { display: none; }
   </style>
 </head>
@@ -163,7 +145,8 @@
     <h1>RANDOMPHOTO</h1>
     <input type="email" id="email" placeholder="Correo electrónico" />
     <input type="password" id="password" placeholder="Contraseña" />
-    <input type="text" id="username" placeholder="Nombre de usuario" />
+    <input type="text" id="username" placeholder="Nombre de usuario (solo para registro)" />
+    <button id="register-btn">Registrarse</button>
     <button id="login-btn">Entrar</button>
     <div id="login-error"></div>
   </div>
@@ -187,18 +170,31 @@
     <button class="nav-btn" id="next-btn">&#10095;</button>
   </div>
 
+  <!-- Appwrite SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/appwrite@8.0.0/build/appwrite.min.js"></script>
+
   <script>
+    // Configura Appwrite
+    const sdk = new window.Appwrite();
+    sdk
+      .setEndpoint('https://nyc.cloud.appwrite.io/v1') // Cambia aquí con tu endpoint
+      .setProject('685ef5dd0010e2c90647');            // Cambia aquí con tu project ID
+
+    const account = new window.Appwrite.Account(sdk);
+    const storage = new window.Appwrite.Storage(sdk);
+
+    // Elementos UI
     const loginSection = document.getElementById('login-section');
     const cameraSection = document.getElementById('camera-section');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const usernameInput = document.getElementById('username');
+    const registerBtn = document.getElementById('register-btn');
     const loginBtn = document.getElementById('login-btn');
     const loginError = document.getElementById('login-error');
     const logoutBtn = document.getElementById('logout-btn');
     const switchCameraBtn = document.getElementById('switch-camera-btn');
     const usernameDisplay = document.getElementById('username-display');
-
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const takePhotoBtn = document.getElementById('take-photo-btn');
@@ -212,51 +208,91 @@
     let stream = null;
     let photos = [];
     let currentIndex = 0;
-    let useFrontCamera = true; // por defecto cámara frontal
+    let useFrontCamera = true;
 
-    const users = {
-      'diego@random.com': 'Dg251102',
-      'afeni@random.com': '123456'
-    };
+    let currentUser = null;
 
-    loginBtn.onclick = () => {
+    function showError(msg) {
+      loginError.textContent = msg;
+    }
+
+    // Registro
+    registerBtn.onclick = async () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
       const username = usernameInput.value.trim();
 
-      loginError.textContent = '';
-      if (!username) {
-        loginError.textContent = 'Por favor, ingresa un nombre de usuario.';
+      if (!email || !password || !username) {
+        showError('Completa todos los campos para registrarte.');
         return;
       }
-
-      if (users[email] && users[email] === password) {
-        loginSection.classList.add('hidden');
-        cameraSection.classList.remove('hidden');
-        usernameDisplay.textContent = `Usuario: ${username}`;
-        startCamera();
-      } else {
-        loginError.textContent = 'Correo o contraseña incorrectos.';
+      try {
+        await account.create(email, password, username);
+        alert('Usuario registrado con éxito. Ahora inicia sesión.');
+        loginError.textContent = '';
+      } catch (e) {
+        showError(e.message || 'Error al registrar.');
       }
     };
 
+    // Login
+    loginBtn.onclick = async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (!email || !password) {
+        showError('Ingresa correo y contraseña.');
+        return;
+      }
+      try {
+        await account.createSession(email, password);
+        currentUser = await account.get();
+        usernameDisplay.textContent = `Usuario: ${currentUser.name || currentUser.$id}`;
+
+        loginSection.classList.add('hidden');
+        cameraSection.classList.remove('hidden');
+
+        await startCamera();
+        await loadUserPhotos();
+        loginError.textContent = '';
+      } catch (e) {
+        showError('Correo o contraseña incorrectos.');
+      }
+    };
+
+    // Logout
+    logoutBtn.onclick = async () => {
+      try {
+        await account.deleteSession('current');
+      } catch {}
+      stopCamera();
+      currentUser = null;
+      emailInput.value = '';
+      passwordInput.value = '';
+      usernameInput.value = '';
+      usernameDisplay.textContent = '';
+      photos = [];
+      renderGallery();
+      loginSection.classList.remove('hidden');
+      cameraSection.classList.add('hidden');
+    };
+
+    // Cambiar cámara
+    switchCameraBtn.onclick = () => {
+      useFrontCamera = !useFrontCamera;
+      startCamera();
+    };
+
+    // Cámara
     async function startCamera() {
       stopCamera();
 
-      const constraints = {
-        video: { facingMode: useFrontCamera ? 'user' : 'environment' }
-      };
-
+      const constraints = { video: { facingMode: useFrontCamera ? 'user' : 'environment' } };
       try {
         stream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = stream;
-
-        // Modo espejo solo para cámara frontal
-        if (useFrontCamera) {
-          video.classList.add('mirror');
-        } else {
-          video.classList.remove('mirror');
-        }
+        if (useFrontCamera) video.classList.add('mirror');
+        else video.classList.remove('mirror');
       } catch (err) {
         alert('No se pudo acceder a la cámara: ' + err.message);
       }
@@ -264,49 +300,80 @@
 
     function stopCamera() {
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach(t => t.stop());
         stream = null;
       }
     }
 
-    takePhotoBtn.onclick = () => {
+    // Tomar foto y subir
+    takePhotoBtn.onclick = async () => {
+      if (!currentUser) return;
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
+
+      if (useFrontCamera) {
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+      }
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/png');
 
-      photos.unshift(dataUrl);
-      if (photos.length > 5) photos.pop();
-
-      renderGallery();
+      canvas.toBlob(async (blob) => {
+        try {
+          const file = await storage.createFile('unique()', blob, [`user:${currentUser.$id}`]);
+          // URL para mostrar la foto localmente sin recargar
+          photos.unshift(URL.createObjectURL(blob));
+          if (photos.length > 5) photos.pop();
+          renderGallery();
+          alert('Foto subida con éxito.');
+        } catch (e) {
+          alert('Error al subir foto: ' + e.message);
+        }
+      }, 'image/png');
     };
 
+    // Cargar fotos del usuario
+    async function loadUserPhotos() {
+      photos = [];
+      gallery.innerHTML = '';
+      try {
+        const response = await storage.listFiles();
+        // Solo fotos del usuario actual
+        const userFiles = response.files.filter(f => f.permissions.includes(`user:${currentUser.$id}`));
+
+        for (const file of userFiles) {
+          const url = await storage.getFilePreview(file.$id);
+          photos.push(url.href);
+        }
+      } catch (e) {
+        console.log('Error cargando fotos:', e.message);
+      }
+      renderGallery();
+    }
+
+    // Render galería
     function renderGallery() {
       gallery.innerHTML = '';
-      photos.forEach((src, index) => {
+      photos.forEach((src, i) => {
         const img = document.createElement('img');
         img.src = src;
-        img.onclick = () => openModal(index);
+        img.onclick = () => openModal(i);
         gallery.appendChild(img);
       });
     }
 
-    function openModal(index) {
-      currentIndex = index;
-      modalImg.src = photos[currentIndex];
+    // Modal
+    function openModal(i) {
+      currentIndex = i;
+      modalImg.src = photos[i];
       modal.style.display = 'flex';
     }
-
-    function closeModalFunc() {
-      modal.style.display = 'none';
-    }
-
+    function closeModalFunc() { modal.style.display = 'none'; }
     function showNext() {
       currentIndex = (currentIndex + 1) % photos.length;
       modalImg.src = photos[currentIndex];
     }
-
     function showPrev() {
       currentIndex = (currentIndex - 1 + photos.length) % photos.length;
       modalImg.src = photos[currentIndex];
@@ -316,21 +383,18 @@
     nextBtn.onclick = showNext;
     prevBtn.onclick = showPrev;
 
-    logoutBtn.onclick = () => {
-      stopCamera();
-      emailInput.value = '';
-      passwordInput.value = '';
-      usernameInput.value = '';
-      usernameDisplay.textContent = '';
-      loginSection.classList.remove('hidden');
-      cameraSection.classList.add('hidden');
-      photos = [];
-      renderGallery();
-    };
-
-    switchCameraBtn.onclick = () => {
-      useFrontCamera = !useFrontCamera;
-      startCamera();
+    // Al cargar la página, checar sesión activa
+    window.onload = async () => {
+      try {
+        currentUser = await account.get();
+        usernameDisplay.textContent = `Usuario: ${currentUser.name || currentUser.$id}`;
+        loginSection.classList.add('hidden');
+        cameraSection.classList.remove('hidden');
+        await startCamera();
+        await loadUserPhotos();
+      } catch {
+        // No hay sesión activa
+      }
     };
   </script>
 </body>
