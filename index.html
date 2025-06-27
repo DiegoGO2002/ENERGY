@@ -2,88 +2,87 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RANDOMPHOTO</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
-      padding: 0;
+      min-height: 100vh;
       font-family: Arial, sans-serif;
       background: #000;
+      overflow-x: hidden;
+      padding-top: 20px;
       color: white;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      position: relative;
-      overflow: hidden;
     }
 
     .random-image {
       position: absolute;
-      max-width: 180px;
-      max-height: 180px;
+      max-width: 200px;
+      max-height: 200px;
       border-radius: 10px;
       z-index: 0;
       opacity: 0.9;
     }
 
     #login-section, #camera-section {
-      width: 100%;
-      max-width: 430px;
+      position: relative;
+      z-index: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
+      text-align: center;
       padding: 20px;
-      z-index: 1;
+      width: 100%;
+      max-width: 400px;
     }
 
     input, button {
-      font-size: 1.1rem;
-      padding: 12px;
-      margin: 6px 0;
-      width: 100%;
-      border-radius: 10px;
+      font-size: 1.2rem;
+      padding: 10px;
+      margin: 5px;
+      border-radius: 5px;
       border: none;
-    }
-
-    input {
-      background: #fff;
-      color: #000;
     }
 
     video {
       width: 100%;
-      aspect-ratio: 9 / 16;
+      height: 640px;
       object-fit: cover;
       border-radius: 20px;
-      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 20px rgba(255,255,255,0.3);
+      margin: 20px 0;
+    }
+
+    #photo {
+      max-width: 300px;
+      border-radius: 10px;
+      margin: 10px;
     }
 
     #take-photo-btn {
-      width: 70px;
-      height: 70px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       background-color: white;
       border: none;
-      margin-top: 15px;
+      cursor: pointer;
+      margin-top: 10px;
     }
 
     #logout-btn {
       position: absolute;
-      top: 20px;
-      right: 20px;
+      top: 10px;
+      right: 10px;
       background-color: crimson;
       color: white;
-      padding: 8px 12px;
       border: none;
+      padding: 8px 12px;
       border-radius: 5px;
-      z-index: 10;
+      cursor: pointer;
+      z-index: 2;
     }
 
     #login-error {
@@ -92,28 +91,75 @@
       margin-top: 10px;
     }
 
-    #photo {
+    #gallery {
+      margin-top: 10px;
       width: 100%;
-      max-width: 360px;
-      border-radius: 10px;
-      margin-top: 15px;
+      max-width: 400px;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 20px;
     }
+
+    #gallery img {
+      width: 70px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(255,255,255,0.6);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    #image-viewer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99;
+      flex-direction: column;
+    }
+
+    #image-viewer img {
+      max-width: 90%;
+      max-height: 80vh;
+      border-radius: 10px;
+    }
+
+    #close-viewer {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 2rem;
+      color: white;
+      cursor: pointer;
+    }
+
+    #prev-btn, #next-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 2rem;
+      cursor: pointer;
+      margin: 10px;
+    }
+
+    #prev-btn { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); }
+    #next-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
   </style>
 </head>
 <body>
 
-  <!-- Imágenes aleatorias -->
   <script>
     const imageUrls = [
       "https://preview.redd.it/tener-una-imagen-random-hace-que-la-publicaci%C3%B3n-tenga-m%C3%A1s-v0-6frn21rqrtoc1.jpeg?width=640&crop=smart&auto=webp&s=e109a6ff409c369a7be16d3b7d8c885fa69c8abf",
       "https://imgproxy.domestika.org/unsafe/w:820/plain/src://content-items/002/854/630/IMG_2798-original.jpg?1552473366",
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhLrq4s4xwmnVwnLBDcBPH7CZY4SSto1DoDA&s",
-      "https://i.imgur.com/JqKDdxj.jpeg",
-      "https://i.imgur.com/2pHTvuy.jpg",
-      "https://i.imgur.com/VlnsM2a.jpg",
-      "https://i.imgur.com/T9uN5Kx.jpeg",
-      "https://i.imgur.com/U0Z7K3E.jpeg",
-      "https://i.imgur.com/FjOmN09.jpeg"
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhLrq4s4xwmnVwnLBDcBPH7CZY4SSto1DoDA&s"
     ];
 
     const maxImages = Math.floor(Math.random() * 2) + 1;
@@ -130,27 +176,34 @@
     };
   </script>
 
-  <!-- Login -->
   <div id="login-section">
-    <h1 style="color:white;">RANDOMPHOTO</h1>
-    <input type="email" id="email" placeholder="Correo electrónico" />
-    <input type="password" id="password" placeholder="Contraseña" />
+    <h1>RANDOMPHOTO</h1>
+    <input type="email" id="email" placeholder="Correo electrónico" /><br>
+    <input type="password" id="password" placeholder="Contraseña" /><br>
     <button id="login-btn">Entrar</button>
     <div id="login-error"></div>
   </div>
 
-  <!-- Cámara -->
   <div id="camera-section" class="hidden">
     <button id="logout-btn">Cerrar sesión</button>
     <video id="video" autoplay playsinline></video>
     <canvas id="canvas" class="hidden"></canvas>
-    <img id="photo" alt="Foto tomada" class="hidden" />
     <button id="take-photo-btn"></button>
+  </div>
+
+  <div id="gallery" class="hidden"></div>
+
+  <div id="image-viewer" class="hidden">
+    <span id="close-viewer">✕</span>
+    <img id="viewer-img" src="" />
+    <button id="prev-btn">←</button>
+    <button id="next-btn">→</button>
   </div>
 
   <script>
     const loginSection = document.getElementById('login-section');
     const cameraSection = document.getElementById('camera-section');
+    const gallery = document.getElementById('gallery');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const loginBtn = document.getElementById('login-btn');
@@ -159,10 +212,17 @@
 
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    const photo = document.getElementById('photo');
     const takePhotoBtn = document.getElementById('take-photo-btn');
 
+    const viewer = document.getElementById("image-viewer");
+    const viewerImg = document.getElementById("viewer-img");
+    const closeViewer = document.getElementById("close-viewer");
+    const prevBtn = document.getElementById("prev-btn");
+    const nextBtn = document.getElementById("next-btn");
+
     let stream = null;
+    let photos = [];
+    let currentIndex = 0;
 
     loginBtn.onclick = () => {
       const email = emailInput.value.trim();
@@ -177,6 +237,7 @@
       if (users[email] && users[email] === password) {
         loginSection.classList.add('hidden');
         cameraSection.classList.remove('hidden');
+        gallery.classList.remove('hidden');
         startCamera();
       } else {
         loginError.textContent = 'Correo o contraseña incorrectos.';
@@ -207,9 +268,57 @@
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataUrl = canvas.toDataURL('image/png');
-      photo.src = dataUrl;
-      photo.classList.remove('hidden');
+      photos.unshift(dataUrl);
+      if (photos.length > 5) photos.pop();
+      renderGallery();
     };
+
+    function renderGallery() {
+      gallery.innerHTML = '';
+      photos.forEach((src, i) => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.onclick = () => openViewer(i);
+        gallery.appendChild(img);
+      });
+    }
+
+    function openViewer(index) {
+      currentIndex = index;
+      viewerImg.src = photos[currentIndex];
+      viewer.classList.remove("hidden");
+    }
+
+    function updateViewer() {
+      viewerImg.src = photos[currentIndex];
+    }
+
+    closeViewer.onclick = () => viewer.classList.add("hidden");
+
+    prevBtn.onclick = () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateViewer();
+      }
+    };
+
+    nextBtn.onclick = () => {
+      if (currentIndex < photos.length - 1) {
+        currentIndex++;
+        updateViewer();
+      }
+    };
+
+    let startX = 0;
+    viewerImg.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+    });
+
+    viewerImg.addEventListener('touchend', (e) => {
+      const endX = e.changedTouches[0].clientX;
+      if (endX < startX - 30) nextBtn.click();
+      else if (endX > startX + 30) prevBtn.click();
+    });
 
     logoutBtn.onclick = () => {
       stopCamera();
@@ -217,10 +326,11 @@
       passwordInput.value = '';
       loginSection.classList.remove('hidden');
       cameraSection.classList.add('hidden');
+      gallery.classList.add('hidden');
       video.classList.add('hidden');
-      photo.classList.add('hidden');
+      photos = [];
+      renderGallery();
     };
   </script>
-
 </body>
 </html>
