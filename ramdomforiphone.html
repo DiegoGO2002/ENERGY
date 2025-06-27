@@ -9,63 +9,43 @@
       margin: 0;
       min-height: 100vh;
       font-family: Arial, sans-serif;
-      background: #000; /* Fondo negro */
+      background: #000;
       overflow-x: hidden;
       padding-top: 20px;
       color: white;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
     }
-    #app-container {
-      width: 100%;
-      max-width: 420px;
-      padding: 0 10px;
+
+    /* Imágenes random de fondo */
+    .random-image {
+      position: absolute;
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 10px;
+      z-index: 0;
+      opacity: 0.9;
     }
 
     #login-section, #camera-section {
+      position: relative;
+      z-index: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
       padding: 20px;
-      background: #111;
-      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
     }
 
     input, button {
-      font-size: 16px;
+      font-size: 1.2rem;
       padding: 10px;
       margin: 5px;
-      border-radius: 6px;
+      border-radius: 5px;
       border: none;
-    }
-
-    input {
-      width: 100%;
-      max-width: 300px;
-    }
-
-    #take-photo-btn {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      background-color: white;
-      border: none;
-      cursor: pointer;
-      margin: 15px 0;
-    }
-
-    #logout-btn {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background-color: crimson;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      z-index: 10;
     }
 
     video {
@@ -74,76 +54,118 @@
       object-fit: cover;
       border-radius: 20px;
       box-shadow: 0 0 20px rgba(255,255,255,0.3);
-      margin: 10px 0;
+      margin: 20px 0;
     }
 
     #photo {
-      max-width: 100%;
-      margin-top: 10px;
+      max-width: 300px;
       border-radius: 10px;
+      margin: 10px;
     }
 
-    #gallery {
-      margin-top: 25px;
-      width: 100%;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      justify-content: center;
-    }
-
-    #gallery img {
-      width: 90px;
-      height: 120px;
-      object-fit: cover;
-      border-radius: 8px;
+    #take-photo-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: white;
+      border: none;
       cursor: pointer;
-      border: 2px solid white;
-      transition: border-color 0.3s;
+      margin-top: 10px;
     }
 
-    #gallery img:hover {
-      border-color: #1e90ff;
+    #logout-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: crimson;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 2;
     }
 
     #login-error {
-      color: #f33;
+      color: red;
       font-weight: bold;
       margin-top: 10px;
     }
 
-    .hidden { display: none; }
+    /* Galería de fotos pequeñas */
+    #gallery {
+      margin-top: 10px;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 20px;
+    }
+
+    #gallery img {
+      width: 70px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 10px;
+      box-shadow: 0 0 8px rgba(255,255,255,0.6);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
 
   </style>
 </head>
 <body>
 
-  <div id="app-container">
-    <!-- Login -->
-    <div id="login-section">
-      <h1>RANDOMPHOTO</h1>
-      <input type="email" id="email" placeholder="Correo electrónico" autocomplete="username" /><br>
-      <input type="password" id="password" placeholder="Contraseña" autocomplete="current-password" /><br>
-      <button id="login-btn">Entrar</button>
-      <div id="login-error"></div>
-    </div>
+  <!-- Imágenes random de fondo -->
+  <script>
+    const imageUrls = [
+      "https://preview.redd.it/tener-una-imagen-random-hace-que-la-publicaci%C3%B3n-tenga-m%C3%A1s-v0-6frn21rqrtoc1.jpeg?width=640&crop=smart&auto=webp&s=e109a6ff409c369a7be16d3b7d8c885fa69c8abf",
+      "https://imgproxy.domestika.org/unsafe/w:820/plain/src://content-items/002/854/630/IMG_2798-original.jpg?1552473366",
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhLrq4s4xwmnVwnLBDcBPH7CZY4SSto1DoDA&s",
+      // Puedes agregar más URLs aquí
+    ];
 
-    <!-- Cámara -->
-    <div id="camera-section" class="hidden" style="position: relative;">
-      <button id="logout-btn">Cerrar sesión</button>
-      <video id="video" autoplay playsinline></video>
-      <canvas id="canvas" class="hidden"></canvas>
-      <img id="photo" alt="Foto tomada" class="hidden" />
-      <button id="take-photo-btn" title="Tomar foto"></button>
+    const maxImages = Math.floor(Math.random() * 2) + 1;
 
-      <!-- Galería -->
-      <div id="gallery"></div>
-    </div>
+    window.onload = () => {
+      for (let i = 0; i < maxImages; i++) {
+        const img = document.createElement('img');
+        img.src = imageUrls[Math.floor(Math.random() * imageUrls.length)];
+        img.className = 'random-image';
+        img.style.top = Math.random() * (window.innerHeight - 200) + 'px';
+        img.style.left = Math.random() * (window.innerWidth - 200) + 'px';
+        document.body.appendChild(img);
+      }
+    };
+  </script>
+
+  <!-- Login -->
+  <div id="login-section">
+    <h1>RANDOMPHOTO</h1>
+    <input type="email" id="email" placeholder="Correo electrónico" /><br>
+    <input type="password" id="password" placeholder="Contraseña" /><br>
+    <button id="login-btn">Entrar</button>
+    <div id="login-error"></div>
+  </div>
+
+  <!-- Cámara -->
+  <div id="camera-section" class="hidden">
+    <button id="logout-btn">Cerrar sesión</button>
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" class="hidden"></canvas>
+    <button id="take-photo-btn"></button>
+  </div>
+
+  <!-- Galería -->
+  <div id="gallery" class="hidden" title="Galería de fotos tomadas">
+    <!-- Fotos tomadas se agregarán aquí -->
   </div>
 
   <script>
     const loginSection = document.getElementById('login-section');
     const cameraSection = document.getElementById('camera-section');
+    const gallery = document.getElementById('gallery');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const loginBtn = document.getElementById('login-btn');
@@ -152,11 +174,10 @@
 
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
-    const photo = document.getElementById('photo');
     const takePhotoBtn = document.getElementById('take-photo-btn');
-    const gallery = document.getElementById('gallery');
 
     let stream = null;
+    let photos = [];
 
     loginBtn.onclick = () => {
       const email = emailInput.value.trim();
@@ -171,8 +192,8 @@
       if (users[email] && users[email] === password) {
         loginSection.classList.add('hidden');
         cameraSection.classList.remove('hidden');
+        gallery.classList.remove('hidden');
         startCamera();
-        clearGallery();
       } else {
         loginError.textContent = 'Correo o contraseña incorrectos.';
       }
@@ -203,29 +224,26 @@
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataUrl = canvas.toDataURL('image/png');
 
-      photo.src = dataUrl;
-      photo.classList.remove('hidden');
+      // Guardar foto en arreglo
+      photos.unshift(dataUrl); // agregar al inicio
+      if (photos.length > 5) photos.pop(); // eliminar la más antigua si hay más de 5
 
-      addPhotoToGallery(dataUrl);
+      renderGallery();
     };
 
-    function addPhotoToGallery(dataUrl) {
-      const img = document.createElement('img');
-      img.src = dataUrl;
-      img.alt = 'Foto tomada';
-      img.onclick = () => {
-        // Al hacer clic, la imagen se muestra en grande
-        photo.src = dataUrl;
-        photo.classList.remove('hidden');
-        // Opcional: hacer scroll al video o foto grande
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      };
-      gallery.appendChild(img);
-    }
+    function renderGallery() {
+      gallery.innerHTML = ''; // limpiar
 
-    function clearGallery() {
-      gallery.innerHTML = '';
-      photo.classList.add('hidden');
+      photos.forEach((src, i) => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.title = `Foto ${i + 1}`;
+        img.onclick = () => {
+          // Opcional: ampliar imagen al hacer clic
+          window.open(src, '_blank');
+        };
+        gallery.appendChild(img);
+      });
     }
 
     logoutBtn.onclick = () => {
@@ -234,8 +252,10 @@
       passwordInput.value = '';
       loginSection.classList.remove('hidden');
       cameraSection.classList.add('hidden');
-      photo.classList.add('hidden');
-      clearGallery();
+      gallery.classList.add('hidden');
+      video.classList.add('hidden');
+      photos = [];
+      renderGallery();
     };
   </script>
 
