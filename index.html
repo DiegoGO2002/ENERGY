@@ -1,10 +1,12 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RANDOMPHOTO</title>
   <style>
+    /* Mismos estilos que antes */
     * { box-sizing: border-box; }
     body {
       margin: 0;
@@ -177,8 +179,8 @@
     // Configura Appwrite
     const sdk = new window.Appwrite();
     sdk
-      .setEndpoint('https://nyc.cloud.appwrite.io/v1') // Cambia aquí con tu endpoint
-      .setProject('685ef5dd0010e2c90647');            // Cambia aquí con tu project ID
+      .setEndpoint('https://nyc.cloud.appwrite.io/v1') // Cambia por tu endpoint
+      .setProject('685ef5dd0010e2c90647'); // Cambia por tu project ID
 
     const account = new window.Appwrite.Account(sdk);
     const storage = new window.Appwrite.Storage(sdk);
@@ -209,14 +211,22 @@
     let photos = [];
     let currentIndex = 0;
     let useFrontCamera = true;
-
     let currentUser = null;
 
     function showError(msg) {
       loginError.textContent = msg;
     }
 
-    // Registro
+    // Muestra/oculta el campo de username según si es login o registro
+    function setUsernameVisibility(show) {
+      usernameInput.style.display = show ? 'block' : 'none';
+      usernameInput.value = '';
+    }
+
+    // Inicialmente ocultamos username para login
+    setUsernameVisibility(false);
+
+    // Evento registro
     registerBtn.onclick = async () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
@@ -226,16 +236,19 @@
         showError('Completa todos los campos para registrarte.');
         return;
       }
+
+      showError('');
       try {
         await account.create(email, password, username);
-        alert('Usuario registrado con éxito. Ahora inicia sesión.');
-        loginError.textContent = '';
+        alert('Registro exitoso. Ahora inicia sesión con tu correo y contraseña.');
+        setUsernameVisibility(false);
       } catch (e) {
+        console.error('Error registro:', e);
         showError(e.message || 'Error al registrar.');
       }
     };
 
-    // Login
+    // Evento login
     loginBtn.onclick = async () => {
       const email = emailInput.value.trim();
       const password = passwordInput.value.trim();
@@ -244,6 +257,8 @@
         showError('Ingresa correo y contraseña.');
         return;
       }
+
+      showError('');
       try {
         await account.createSession(email, password);
         currentUser = await account.get();
@@ -254,8 +269,8 @@
 
         await startCamera();
         await loadUserPhotos();
-        loginError.textContent = '';
       } catch (e) {
+        console.error('Error login:', e);
         showError('Correo o contraseña incorrectos.');
       }
     };
@@ -275,6 +290,8 @@
       renderGallery();
       loginSection.classList.remove('hidden');
       cameraSection.classList.add('hidden');
+      setUsernameVisibility(false);
+      showError('');
     };
 
     // Cambiar cámara
@@ -305,9 +322,12 @@
       }
     }
 
-    // Tomar foto y subir
+    // Tomar foto y subir a Appwrite Storage
     takePhotoBtn.onclick = async () => {
-      if (!currentUser) return;
+      if (!currentUser) {
+        alert('Inicia sesión primero.');
+        return;
+      }
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -322,7 +342,7 @@
       canvas.toBlob(async (blob) => {
         try {
           const file = await storage.createFile('unique()', blob, [`user:${currentUser.$id}`]);
-          // URL para mostrar la foto localmente sin recargar
+          // Guardar URL local para mostrar rápido
           photos.unshift(URL.createObjectURL(blob));
           if (photos.length > 5) photos.pop();
           renderGallery();
@@ -333,26 +353,26 @@
       }, 'image/png');
     };
 
-    // Cargar fotos del usuario
+    // Cargar fotos guardadas en Appwrite
     async function loadUserPhotos() {
       photos = [];
       gallery.innerHTML = '';
       try {
         const response = await storage.listFiles();
-        // Solo fotos del usuario actual
         const userFiles = response.files.filter(f => f.permissions.includes(`user:${currentUser.$id}`));
 
         for (const file of userFiles) {
+          // Obtener preview url
           const url = await storage.getFilePreview(file.$id);
           photos.push(url.href);
         }
       } catch (e) {
-        console.log('Error cargando fotos:', e.message);
+        console.error('Error cargando fotos:', e);
       }
       renderGallery();
     }
 
-    // Render galería
+    // Renderizar galería
     function renderGallery() {
       gallery.innerHTML = '';
       photos.forEach((src, i) => {
@@ -383,15 +403,17 @@
     nextBtn.onclick = showNext;
     prevBtn.onclick = showPrev;
 
-    // Al cargar la página, checar sesión activa
+    // Al cargar la página, revisar sesión activa
     window.onload = async () => {
       try {
         currentUser = await account.get();
-        usernameDisplay.textContent = `Usuario: ${currentUser.name || currentUser.$id}`;
-        loginSection.classList.add('hidden');
-        cameraSection.classList.remove('hidden');
-        await startCamera();
-        await loadUserPhotos();
+        if (currentUser) {
+          usernameDisplay.textContent = `Usuario: ${currentUser.name || currentUser.$id}`;
+          loginSection.classList.add('hidden');
+          cameraSection.classList.remove('hidden');
+          await startCamera();
+          await loadUserPhotos();
+        }
       } catch {
         // No hay sesión activa
       }
