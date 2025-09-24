@@ -1,304 +1,130 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RANDOMPHOTO</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnergyM - Inicio de Sesión</title>
   <style>
-    * { box-sizing: border-box; }
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background: #000;
-      color: white;
+      background: linear-gradient(135deg, #3a7bd5, #00d2ff);
       display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .random-image {
-      position: absolute;
-      max-width: 200px;
-      max-height: 200px;
-      border-radius: 10px;
-      z-index: 0;
-      opacity: 0.9;
-    }
-
-    #login-section, #camera-section {
-      width: 100%;
-      max-width: 400px;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      z-index: 1;
-    }
-
-    input, button {
-      font-size: 1rem;
-      padding: 10px;
-      margin: 5px;
-      border-radius: 5px;
-      border: none;
-    }
-
-    video {
-      width: 100%;
-      height: 640px;
-      object-fit: cover;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(255,255,255,0.3);
-    }
-
-    #take-photo-btn {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      background-color: white;
-      border: none;
-      margin: 15px 0;
-    }
-
-    #logout-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background-color: crimson;
-      color: white;
-      padding: 8px 12px;
-      border: none;
-      border-radius: 5px;
-      z-index: 10;
-    }
-
-    #login-error {
-      color: red;
-      font-weight: bold;
-    }
-
-    #gallery {
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
-      width: 100%;
-      max-width: 400px;
-      padding: 10px;
-      margin-bottom: 20px;
-    }
-
-    #gallery img {
-      width: 70px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 10px;
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    #modal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.9);
-      display: flex;
-      align-items: center;
       justify-content: center;
-      z-index: 999;
-      display: none;
-      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
-
-    #modal img {
-      max-width: 90vw;
-      max-height: 90vh;
-      border-radius: 10px;
+    .contenedor {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.3);
+      width: 300px;
+      text-align: center;
     }
-
-    .nav-btn {
-      position: absolute;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 2rem;
-      background: transparent;
-      border: none;
-      color: white;
-      cursor: pointer;
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    input {
+      width: 90%;
       padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
     }
-
-    #prev-btn { left: 10px; }
-    #next-btn { right: 10px; }
-
-    #close-modal {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: crimson;
-      border: none;
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #3a7bd5;
       color: white;
-      padding: 8px 12px;
-      border-radius: 5px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 16px;
+    }
+    button:hover {
+      background: #2f5ba0;
+    }
+    .mensaje {
+      margin-top: 15px;
+      color: green;
+      font-size: 14px;
+    }
+    .error {
+      color: red;
+    }
+    .link {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #0077cc;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <script>
-    const imageUrls = [
-      "https://preview.redd.it/tener-una-imagen-random-hace-que-la-publicaci%C3%B3n-tenga-m%C3%A1s-v0-6frn21rqrtoc1.jpeg?width=640&crop=smart&auto=webp&s=e109a6ff409c369a7be16d3b7d8c885fa69c8abf",
-      "https://imgproxy.domestika.org/unsafe/w:820/plain/src://content-items/002/854/630/IMG_2798-original.jpg?1552473366",
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhLrq4s4xwmnVwnLBDcBPH7CZY4SSto1DoDA&s"
-    ];
 
-    const maxImages = Math.floor(Math.random() * 2) + 1;
-
-    window.onload = () => {
-      for (let i = 0; i < maxImages; i++) {
-        const img = document.createElement('img');
-        img.src = imageUrls[Math.floor(Math.random() * imageUrls.length)];
-        img.className = 'random-image';
-        img.style.top = Math.random() * (window.innerHeight - 200) + 'px';
-        img.style.left = Math.random() * (window.innerWidth - 200) + 'px';
-        document.body.appendChild(img);
-      }
-    };
-  </script>
-
-  <div id="login-section">
-    <h1>RANDOMPHOTO</h1>
-    <input type="email" id="email" placeholder="Correo electrónico" />
-    <input type="password" id="password" placeholder="Contraseña" />
-    <button id="login-btn">Entrar</button>
-    <div id="login-error"></div>
+  <div class="contenedor" id="login">
+    <h2>Iniciar Sesión</h2>
+    <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
+    <input type="password" id="loginPassword" placeholder="Contraseña" required>
+    <button onclick="iniciarSesion()">Entrar</button>
+    <div class="link" onclick="mostrarRegistro()">¿No tienes cuenta? Crear una</div>
+    <div id="loginMsg" class="mensaje"></div>
   </div>
 
-  <div id="camera-section" class="hidden">
-    <button id="logout-btn">Cerrar sesión</button>
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas" class="hidden"></canvas>
-    <button id="take-photo-btn"></button>
-    <div id="gallery"></div>
-  </div>
-
-  <div id="modal">
-    <button id="close-modal">Cerrar</button>
-    <button class="nav-btn" id="prev-btn">&#10094;</button>
-    <img id="modal-img" src="" />
-    <button class="nav-btn" id="next-btn">&#10095;</button>
+  <div class="contenedor" id="registro" style="display:none;">
+    <h2>Crear Cuenta</h2>
+    <input type="email" id="regEmail" placeholder="Correo electrónico" required>
+    <input type="password" id="regPassword" placeholder="Contraseña" required>
+    <button onclick="registrar()">Registrar</button>
+    <div class="link" onclick="mostrarLogin()">¿Ya tienes cuenta? Inicia sesión</div>
+    <div id="regMsg" class="mensaje"></div>
   </div>
 
   <script>
-    const loginSection = document.getElementById('login-section');
-    const cameraSection = document.getElementById('camera-section');
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const loginBtn = document.getElementById('login-btn');
-    const loginError = document.getElementById('login-error');
-    const logoutBtn = document.getElementById('logout-btn');
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const takePhotoBtn = document.getElementById('take-photo-btn');
-    const gallery = document.getElementById('gallery');
-    const modal = document.getElementById('modal');
-    const modalImg = document.getElementById('modal-img');
-    const closeModal = document.getElementById('close-modal');
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
+    // Mostrar pantallas
+    function mostrarRegistro() {
+      document.getElementById("login").style.display = "none";
+      document.getElementById("registro").style.display = "block";
+    }
+    function mostrarLogin() {
+      document.getElementById("registro").style.display = "none";
+      document.getElementById("login").style.display = "block";
+    }
 
-    let stream = null;
-    let photos = [];
-    let currentIndex = 0;
+    // Registrar usuario
+    function registrar() {
+      const email = document.getElementById("regEmail").value;
+      const password = document.getElementById("regPassword").value;
 
-    loginBtn.onclick = () => {
-      const email = emailInput.value.trim();
-      const password = passwordInput.value.trim();
-      const users = {
-        'diego@random.com': 'Dg251102',
-        'afeni@random.com': '123456'
-      };
-
-      if (users[email] && users[email] === password) {
-        loginSection.classList.add('hidden');
-        cameraSection.classList.remove('hidden');
-        startCamera();
+      if (email && password) {
+        localStorage.setItem(email, password);
+        document.getElementById("regMsg").innerHTML = "✅ Cuenta creada con éxito";
       } else {
-        loginError.textContent = 'Correo o contraseña incorrectos.';
-      }
-    };
-
-    async function startCamera() {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = stream;
-      } catch (err) {
-        alert('No se pudo acceder a la cámara: ' + err.message);
+        document.getElementById("regMsg").innerHTML = "❌ Ingresa todos los campos";
+        document.getElementById("regMsg").classList.add("error");
       }
     }
 
-    function stopCamera() {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        stream = null;
+    // Iniciar sesión
+    function iniciarSesion() {
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
+
+      const guardado = localStorage.getItem(email);
+
+      if (guardado === password) {
+        document.getElementById("loginMsg").innerHTML = "✅ Bienvenido " + email;
+      } else {
+        document.getElementById("loginMsg").innerHTML = "❌ Correo o contraseña incorrectos";
+        document.getElementById("loginMsg").classList.add("error");
       }
     }
-
-    takePhotoBtn.onclick = () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/png');
-
-      photos.unshift(dataUrl);
-      if (photos.length > 5) photos.pop();
-
-      renderGallery();
-    };
-
-    function renderGallery() {
-      gallery.innerHTML = '';
-      photos.forEach((src, index) => {
-        const img = document.createElement('img');
-        img.src = src;
-        img.onclick = () => openModal(index);
-        gallery.appendChild(img);
-      });
-    }
-
-    function openModal(index) {
-      currentIndex = index;
-      modalImg.src = photos[currentIndex];
-      modal.style.display = 'flex';
-    }
-
-    function closeModalFunc() {
-      modal.style.display = 'none';
-    }
-
-    function showNext() {
-      currentIndex = (currentIndex + 1) % photos.length;
-      modalImg.src = photos[currentIndex];
-    }
-
-    function showPrev() {
-      currentIndex = (currentIndex - 1 + photos.length) % photos.length;
-      modalImg.src = photos[currentIndex];
-    }
-
-    closeModal.onclick = closeModalFunc;
-    nextBtn.onclick = showNext;
-    prevBtn.onclick = showPrev;
-
-    logoutBtn.onclick = () => {
-      stopCamera();
-      emailInput.value = '';
-      passwordInput.value = '';
-      loginSection.classList.remove('hidden');
-      cameraSection.classList.add('hidden');
-      photos = [];
-      renderGallery();
-    };
   </script>
+
 </body>
 </html>
+
+
