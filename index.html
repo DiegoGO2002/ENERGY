@@ -2,12 +2,12 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EnergyM - Inicio de Sesión</title>
+  <title>EnergyM - Login</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #3a7bd5, #00d2ff);
+      background: #111;
+      color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -15,57 +15,55 @@
       margin: 0;
     }
     .contenedor {
-      background: white;
+      background: #222;
       padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0px 4px 8px rgba(0,0,0,0.3);
+      border-radius: 10px;
       width: 300px;
       text-align: center;
     }
     h2 {
       margin-bottom: 20px;
-      color: #333;
     }
     input {
       width: 90%;
       padding: 10px;
       margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      border: none;
+      border-radius: 5px;
     }
     button {
       width: 100%;
       padding: 10px;
-      background: #3a7bd5;
-      color: white;
+      background: #28a745;
+      color: #fff;
       border: none;
-      border-radius: 8px;
+      border-radius: 5px;
       cursor: pointer;
-      margin-top: 10px;
-      font-size: 16px;
     }
     button:hover {
-      background: #2f5ba0;
-    }
-    .mensaje {
-      margin-top: 15px;
-      color: green;
-      font-size: 14px;
-    }
-    .error {
-      color: red;
+      background: #218838;
     }
     .link {
       margin-top: 15px;
-      font-size: 14px;
-      color: #0077cc;
       cursor: pointer;
+      color: #00f;
+      text-decoration: underline;
+    }
+    .mensaje {
+      margin-top: 10px;
+      color: yellow;
     }
   </style>
 </head>
 <body>
-
+  <!-- Pantalla de Login -->
   <div class="contenedor" id="login">
+    <!-- Logo -->
+    <img src="Logo de EnerGym con energía dinámica.png" 
+         alt="Logo EnergyM" 
+         width="120" 
+         style="margin-bottom: 15px;">
+    
     <h2>Iniciar Sesión</h2>
     <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
     <input type="password" id="loginPassword" placeholder="Contraseña" required>
@@ -74,7 +72,14 @@
     <div id="loginMsg" class="mensaje"></div>
   </div>
 
+  <!-- Pantalla de Registro -->
   <div class="contenedor" id="registro" style="display:none;">
+    <!-- Logo -->
+    <img src="Logo de EnerGym con energía dinámica.png" 
+         alt="Logo EnergyM" 
+         width="120" 
+         style="margin-bottom: 15px;">
+    
     <h2>Crear Cuenta</h2>
     <input type="email" id="regEmail" placeholder="Correo electrónico" required>
     <input type="password" id="regPassword" placeholder="Contraseña" required>
@@ -84,45 +89,46 @@
   </div>
 
   <script>
-    // Mostrar pantallas
-    function mostrarRegistro() {
-      document.getElementById("login").style.display = "none";
-      document.getElementById("registro").style.display = "block";
-    }
-    function mostrarLogin() {
-      document.getElementById("registro").style.display = "none";
-      document.getElementById("login").style.display = "block";
-    }
-
-    // Registrar usuario
+    // Guardar usuarios en localStorage
     function registrar() {
-      const email = document.getElementById("regEmail").value;
-      const password = document.getElementById("regPassword").value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
 
-      if (email && password) {
-        localStorage.setItem(email, password);
-        document.getElementById("regMsg").innerHTML = "✅ Cuenta creada con éxito";
+      if (!email || !password) {
+        document.getElementById('regMsg').innerText = "Completa todos los campos.";
+        return;
+      }
+
+      if (localStorage.getItem(email)) {
+        document.getElementById('regMsg').innerText = "El correo ya está registrado.";
       } else {
-        document.getElementById("regMsg").innerHTML = "❌ Ingresa todos los campos";
-        document.getElementById("regMsg").classList.add("error");
+        localStorage.setItem(email, password);
+        document.getElementById('regMsg').innerText = "Cuenta creada con éxito.";
       }
     }
 
     // Iniciar sesión
     function iniciarSesion() {
-      const email = document.getElementById("loginEmail").value;
-      const password = document.getElementById("loginPassword").value;
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const savedPassword = localStorage.getItem(email);
 
-      const guardado = localStorage.getItem(email);
-
-      if (guardado === password) {
-        document.getElementById("loginMsg").innerHTML = "✅ Bienvenido " + email;
+      if (savedPassword === password) {
+        window.location.href = "principal.html"; // Ir a la página principal
       } else {
-        document.getElementById("loginMsg").innerHTML = "❌ Correo o contraseña incorrectos";
-        document.getElementById("loginMsg").classList.add("error");
+        document.getElementById('loginMsg').innerText = "Correo o contraseña incorrectos.";
       }
     }
-  </script>
 
+    // Cambiar entre pantallas
+    function mostrarRegistro() {
+      document.getElementById('login').style.display = "none";
+      document.getElementById('registro').style.display = "block";
+    }
+    function mostrarLogin() {
+      document.getElementById('registro').style.display = "none";
+      document.getElementById('login').style.display = "block";
+    }
+  </script>
 </body>
 </html>
