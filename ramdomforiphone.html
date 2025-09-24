@@ -49,7 +49,6 @@
     }
     .mensaje {
       margin-top: 15px;
-      color: green;
       font-size: 14px;
     }
     .error {
@@ -61,11 +60,17 @@
       color: #0077cc;
       cursor: pointer;
     }
+    img.logo {
+      width: 120px;
+      margin-bottom: 15px;
+    }
   </style>
 </head>
 <body>
 
   <div class="contenedor" id="login">
+    <!-- Logo en login -->
+    <img src="logo.png" alt="Logo EnergyM" class="logo">
     <h2>Iniciar Sesión</h2>
     <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
     <input type="password" id="loginPassword" placeholder="Contraseña" required>
@@ -75,6 +80,8 @@
   </div>
 
   <div class="contenedor" id="registro" style="display:none;">
+    <!-- Logo en registro -->
+    <img src="logo.png" alt="Logo EnergyM" class="logo">
     <h2>Crear Cuenta</h2>
     <input type="email" id="regEmail" placeholder="Correo electrónico" required>
     <input type="password" id="regPassword" placeholder="Contraseña" required>
@@ -102,6 +109,7 @@
       if (email && password) {
         localStorage.setItem(email, password);
         document.getElementById("regMsg").innerHTML = "✅ Cuenta creada con éxito";
+        document.getElementById("regMsg").classList.remove("error");
       } else {
         document.getElementById("regMsg").innerHTML = "❌ Ingresa todos los campos";
         document.getElementById("regMsg").classList.add("error");
@@ -116,7 +124,8 @@
       const guardado = localStorage.getItem(email);
 
       if (guardado === password) {
-        document.getElementById("loginMsg").innerHTML = "✅ Bienvenido " + email;
+        localStorage.setItem("usuarioActivo", email);
+        window.location.href = "principal.html";
       } else {
         document.getElementById("loginMsg").innerHTML = "❌ Correo o contraseña incorrectos";
         document.getElementById("loginMsg").classList.add("error");
@@ -126,5 +135,4 @@
 
 </body>
 </html>
-
 
