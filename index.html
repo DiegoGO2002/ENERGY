@@ -1,203 +1,128 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>RANDOMPHOTO</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnergyM - Inicio de Sesión</title>
   <style>
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background: black;
-      color: white;
+      background: linear-gradient(135deg, #3a7bd5, #00d2ff);
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      padding: 20px;
+      height: 100vh;
+      margin: 0;
     }
-    .hidden { display: none; }
-    form, .btn-group {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      margin-top: 20px;
+    .contenedor {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0px 4px 8px rgba(0,0,0,0.3);
+      width: 300px;
+      text-align: center;
     }
-    input, button {
+    h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+    input {
+      width: 90%;
       padding: 10px;
-      border: none;
-      border-radius: 5px;
-      font-size: 1rem;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
     }
     button {
-      background: crimson;
+      width: 100%;
+      padding: 10px;
+      background: #3a7bd5;
       color: white;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
+      margin-top: 10px;
+      font-size: 16px;
     }
-    #video {
-      width: 320px;
-      height: 240px;
-      margin-top: 20px;
-      border-radius: 10px;
+    button:hover {
+      background: #2f5ba0;
     }
-    #gallery {
-      margin-top: 20px;
-      display: flex;
-      gap: 10px;
-      overflow-x: auto;
+    .mensaje {
+      margin-top: 15px;
+      color: green;
+      font-size: 14px;
     }
-    #gallery img {
-      width: 70px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 10px;
+    .error {
+      color: red;
+    }
+    .link {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #0077cc;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
 
-<h1>RANDOMPHOTO</h1>
+  <div class="contenedor" id="login">
+    <h2>Iniciar Sesión</h2>
+    <input type="email" id="loginEmail" placeholder="Correo electrónico" required>
+    <input type="password" id="loginPassword" placeholder="Contraseña" required>
+    <button onclick="iniciarSesion()">Entrar</button>
+    <div class="link" onclick="mostrarRegistro()">¿No tienes cuenta? Crear una</div>
+    <div id="loginMsg" class="mensaje"></div>
+  </div>
 
-<div class="btn-group" id="start-buttons">
-  <button id="show-login">Iniciar sesión</button>
-  <button id="show-register">Registrarse</button>
-</div>
+  <div class="contenedor" id="registro" style="display:none;">
+    <h2>Crear Cuenta</h2>
+    <input type="email" id="regEmail" placeholder="Correo electrónico" required>
+    <input type="password" id="regPassword" placeholder="Contraseña" required>
+    <button onclick="registrar()">Registrar</button>
+    <div class="link" onclick="mostrarLogin()">¿Ya tienes cuenta? Inicia sesión</div>
+    <div id="regMsg" class="mensaje"></div>
+  </div>
 
-<form id="login-form" class="hidden">
-  <input type="email" id="login-email" placeholder="Correo" required />
-  <input type="password" id="login-password" placeholder="Contraseña" required />
-  <button type="submit">Entrar</button>
-  <button type="button" id="cancel-login">Cancelar</button>
-  <div id="login-error" style="color: red;"></div>
-</form>
-
-<form id="register-form" class="hidden">
-  <input type="email" id="register-email" placeholder="Correo" required />
-  <input type="password" id="register-password" placeholder="Contraseña" required />
-  <input type="text" id="register-username" placeholder="Nombre de usuario" required />
-  <button type="submit">Crear cuenta</button>
-  <button type="button" id="cancel-register">Cancelar</button>
-  <div id="register-error" style="color: red;"></div>
-</form>
-
-<div id="camera-section" class="hidden">
-  <h3 id="welcome-user"></h3>
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas" class="hidden"></canvas>
-  <button id="take-photo">📸 Tomar Foto</button>
-  <div id="gallery"></div>
-  <button id="logout">Cerrar sesión</button>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.1"></script>
-<script>
-  const sdk = new window.Appwrite();
-  sdk.setEndpoint('https://nyc.cloud.appwrite.io/v1').setProject('685ef5dd0010e2c90647');
-  const account = new sdk.Account();
-
-  const startButtons = document.getElementById('start-buttons');
-  const showLoginBtn = document.getElementById('show-login');
-  const showRegisterBtn = document.getElementById('show-register');
-  const loginForm = document.getElementById('login-form');
-  const registerForm = document.getElementById('register-form');
-  const loginEmail = document.getElementById('login-email');
-  const loginPassword = document.getElementById('login-password');
-  const registerEmail = document.getElementById('register-email');
-  const registerPassword = document.getElementById('register-password');
-  const registerUsername = document.getElementById('register-username');
-  const loginError = document.getElementById('login-error');
-  const registerError = document.getElementById('register-error');
-  const cameraSection = document.getElementById('camera-section');
-  const welcomeUser = document.getElementById('welcome-user');
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  const takePhotoBtn = document.getElementById('take-photo');
-  const gallery = document.getElementById('gallery');
-  const logoutBtn = document.getElementById('logout');
-
-  let stream = null;
-
-  showLoginBtn.onclick = () => {
-    startButtons.classList.add('hidden');
-    loginForm.classList.remove('hidden');
-  };
-
-  showRegisterBtn.onclick = () => {
-    startButtons.classList.add('hidden');
-    registerForm.classList.remove('hidden');
-  };
-
-  document.getElementById('cancel-login').onclick = () => {
-    loginForm.classList.add('hidden');
-    startButtons.classList.remove('hidden');
-  };
-
-  document.getElementById('cancel-register').onclick = () => {
-    registerForm.classList.add('hidden');
-    startButtons.classList.remove('hidden');
-  };
-
-  loginForm.onsubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await account.createEmailSession(loginEmail.value, loginPassword.value);
-      const user = await account.get();
-      iniciarApp(user.name);
-    } catch (error) {
-      loginError.textContent = 'Error: ' + error.message;
+  <script>
+    // Mostrar pantallas
+    function mostrarRegistro() {
+      document.getElementById("login").style.display = "none";
+      document.getElementById("registro").style.display = "block";
     }
-  };
-
-  registerForm.onsubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await account.create('unique()', registerEmail.value, registerPassword.value, registerUsername.value);
-      await account.createEmailSession(registerEmail.value, registerPassword.value);
-      iniciarApp(registerUsername.value);
-    } catch (error) {
-      registerError.textContent = 'Error: ' + error.message;
+    function mostrarLogin() {
+      document.getElementById("registro").style.display = "none";
+      document.getElementById("login").style.display = "block";
     }
-  };
 
-  async function iniciarApp(nombre) {
-    loginForm.classList.add('hidden');
-    registerForm.classList.add('hidden');
-    startButtons.classList.add('hidden');
-    cameraSection.classList.remove('hidden');
-    welcomeUser.textContent = 'Bienvenido, ' + nombre;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      video.srcObject = stream;
-    } catch (err) {
-      alert('No se pudo acceder a la cámara');
+    // Registrar usuario
+    function registrar() {
+      const email = document.getElementById("regEmail").value;
+      const password = document.getElementById("regPassword").value;
+
+      if (email && password) {
+        localStorage.setItem(email, password);
+        document.getElementById("regMsg").innerHTML = "✅ Cuenta creada con éxito";
+      } else {
+        document.getElementById("regMsg").innerHTML = "❌ Ingresa todos los campos";
+        document.getElementById("regMsg").classList.add("error");
+      }
     }
-  }
 
-  logoutBtn.onclick = async () => {
-    try {
-      await account.deleteSession('current');
-    } catch {}
-    location.reload();
-  };
+    // Iniciar sesión
+    function iniciarSesion() {
+      const email = document.getElementById("loginEmail").value;
+      const password = document.getElementById("loginPassword").value;
 
-  takePhotoBtn.onclick = () => {
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    canvas.getContext('2d').drawImage(video, 0, 0);
-    const dataUrl = canvas.toDataURL('image/png');
-    const img = document.createElement('img');
-    img.src = dataUrl;
-    gallery.prepend(img);
-  };
+      const guardado = localStorage.getItem(email);
 
-  window.onload = async () => {
-    try {
-      const user = await account.get();
-      iniciarApp(user.name);
-    } catch {
-      // No hay sesión
+      if (guardado === password) {
+        document.getElementById("loginMsg").innerHTML = "✅ Bienvenido " + email;
+      } else {
+        document.getElementById("loginMsg").innerHTML = "❌ Correo o contraseña incorrectos";
+        document.getElementById("loginMsg").classList.add("error");
+      }
     }
-  };
-</script>
+  </script>
+
 </body>
 </html>
