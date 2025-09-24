@@ -155,9 +155,136 @@
       document.getElementById('registro').style.display = "none";
       document.getElementById('login').style.display = "block";
     }
-  </script>
+  <html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EnergyM - Principal</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+    }
+
+    /* Barra superior */
+    .navbar {
+      background: #111;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .navbar img {
+      height: 40px;
+    }
+    .navbar .icons {
+      display: flex;
+      gap: 15px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* Feed */
+    .feed {
+      max-width: 600px;
+      margin: 20px auto;
+    }
+    .post {
+      background: #fff;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    .post img {
+      width: 100%;
+      display: block;
+    }
+    .post .info {
+      padding: 10px;
+    }
+    .post .info .user {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .post .info .caption {
+      font-size: 14px;
+      color: #333;
+    }
+
+    /* Barra inferior */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      background: #111;
+      color: #fff;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      font-size: 20px;
+    }
+    .bottom-nav div {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra superior -->
+  <div class="navbar">
+    <img src="Logo de EnerGym con energía dinámica.png" alt="Logo EnergyM">
+    <div class="icons">
+      <span>🏠</span>
+      <span>🔍</span>
+      <span>➕</span>
+      <span>❤️</span>
+      <span>👤</span>
+    </div>
+  </div>
+
+  <!-- Feed -->
+  <div class="feed">
+    <div class="post">
+      <img src="https://picsum.photos/600/400?random=1" alt="Post 1">
+      <div class="info">
+        <div class="user">@energym</div>
+        <div class="caption">Entrena duro y logra tus metas 💪🔥</div>
+      </div>
+    </div>
+    <div class="post">
+      <img src="https://picsum.photos/600/400?random=2" alt="Post 2">
+      <div class="info">
+        <div class="user">@energym</div>
+        <div class="caption">¡No olvides tu pre-entreno antes de la rutina! ⚡</div>
+      </div>
+    </div>
+    <div class="post">
+      <img src="https://picsum.photos/600/400?random=3" alt="Post 3">
+      <div class="info">
+        <div class="user">@energym</div>
+        <div class="caption">Transforma tu cuerpo paso a paso 🏋️‍♂️</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra inferior -->
+  <div class="bottom-nav">
+    <div>🏠</div>
+    <div>🔍</div>
+    <div>➕</div>
+    <div>❤️</div>
+    <div>👤</div>
+  </div>
+
 </body>
 </html>
+
 
 
 
